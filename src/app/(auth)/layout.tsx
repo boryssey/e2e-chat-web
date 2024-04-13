@@ -1,10 +1,9 @@
-import { cookies } from "next/headers";
-import styles from "./page.module.css";
 import { redirect } from "next/navigation";
+import styles from "./auth.module.scss";
+import { cookies } from "next/headers";
 
 const getUserInfo = async () => {
   const cookieStore = cookies();
-
   const res = await fetch("http://localhost:3000/auth/me", {
     headers: {
       Cookie: cookieStore.toString(),
@@ -15,19 +14,25 @@ const getUserInfo = async () => {
     const data = await res.json();
     return data;
   }
-  console.error(res.statusText);
   return null;
 };
 
-export default async function Home() {
+export default async function AuthLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  const cookieStore = cookies();
+  console.log("🚀 ~ cookieStore:", cookieStore);
   const user = await getUserInfo();
-  if (!user) {
-    redirect("/login");
+
+  if (user) {
+    redirect("/");
   }
+
   return (
-    <main className={styles.main}>
-      <h1>Home page</h1>
-      <p>Welcome back, {user?.username}!</p>
+    <main className={styles.authContainer}>
+      <div className={styles.formWrapper}>{children}</div>
     </main>
   );
 }

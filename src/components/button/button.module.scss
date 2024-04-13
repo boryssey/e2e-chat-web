@@ -1,0 +1,26 @@
+.button {
+    font-size: 16px;
+    font-weight: 300;
+    gap: 12px;
+    display: flex;
+    align-items: center;
+    border: none;
+    background: none;
+    cursor: pointer;
+
+    svg {
+        transition: all .2s ease-in-out;
+        transform: translateX(0px);
+    }
+
+    &:focus {
+        // outline: none;
+        // border-radius: 1px solid black;
+    }
+
+    &:hover {
+        svg {
+            transform: translateX(8px);
+        }
+    }
+}
