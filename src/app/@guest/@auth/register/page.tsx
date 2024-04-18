@@ -111,9 +111,12 @@ export default function LoginPage() {
           ))}
         </div>
       )}
-      <Button form="loginForm" withArrow>
-        REGISTER
-      </Button>
+      <div className={styles.actionWrapper}>
+        <a href="/login">Login instead</a>
+        <Button form="loginForm" withArrow>
+          REGISTER
+        </Button>
+      </div>
     </>
   );
 }

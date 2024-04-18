@@ -4,7 +4,8 @@ import Input from "@/components/input";
 import { useRouter } from "next/navigation";
 import { useForm, SubmitHandler } from "react-hook-form";
 import styles from "../auth.module.scss";
-import { useState } from "react";
+import { useCallback, useState } from "react";
+import { revalidatePath } from "next/cache";
 
 type Inputs = {
   username: string;
@@ -12,6 +13,7 @@ type Inputs = {
 };
 
 export default function LoginPage() {
+  console.log("login page called");
   const router = useRouter();
   const [loginError, setLoginError] = useState<string | null>(null);
   const {
@@ -20,27 +22,31 @@ export default function LoginPage() {
     formState: { errors },
   } = useForm<Inputs>();
 
-  const onLogin: SubmitHandler<Inputs> = async (data) => {
-    console.log("onLogin, ;");
-    const res = await fetch("http://localhost:3000/auth/login", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-      credentials: "include",
-    });
+  const onLogin: SubmitHandler<Inputs> = useCallback(
+    async (data) => {
+      console.log("onLogin, ;");
+      const res = await fetch("http://localhost:3000/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+        credentials: "include",
+      });
 
-    if (!res.ok) {
-      const error = await res.json();
-      console.error(error, "error");
-      setLoginError(error.message);
-      return;
-    }
+      if (!res.ok) {
+        const error = await res.json();
+        console.error(error, "error");
+        setLoginError(error.message);
+        return;
+      }
 
-    console.log(res, "res success");
-    router.push("/");
-  };
+      console.log(res, "res success");
+      router.push("/");
+      router.refresh();
+    },
+    [router]
+  );
 
   return (
     <>
@@ -72,7 +78,7 @@ export default function LoginPage() {
         </div>
       )}
       <div className={styles.actionWrapper}>
-        <a href="/auth/register">Register instead</a>
+        <a href="/register">Register instead</a>
         <Button form="loginForm" withArrow>
           LOGIN
         </Button>
