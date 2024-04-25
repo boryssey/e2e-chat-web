@@ -14,7 +14,8 @@
     "react": "^18",
     "react-dom": "^18",
     "react-hook-form": "^7.51.3",
-    "sass": "^1.74.1"
+    "sass": "^1.74.1",
+    "socket.io-client": "^4.7.5"
   },
   "devDependencies": {
     "@types/node": "^20",
