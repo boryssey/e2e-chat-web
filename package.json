@@ -11,6 +11,7 @@
   "dependencies": {
     "@hookform/error-message": "^2.0.1",
     "@privacyresearch/libsignal-protocol-typescript": "^0.0.16",
+    "idb-keyval": "^6.2.1",
     "next": "14.3.0-canary.7",
     "react": "^18",
     "react-dom": "^18",
