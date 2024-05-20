@@ -185,6 +185,7 @@ export class SignalProtocolIndexDBStore implements StorageType {
   removePreKey: (keyId: string | number) => Promise<void> = async (
     keyId: string | number
   ) => {
+    console.log('should remove keyId', keyId)
     return this.del("preKey:" + keyId);
   };
   storeSession: (encodedAddress: string, record: string) => Promise<void> =

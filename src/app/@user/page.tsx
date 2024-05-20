@@ -1,12 +1,15 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+// import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
-import { socket } from "../socket";
+import { ServerToClientEvents, socket } from "../socket";
+import {
+  decode as decodeBase64,
+  encode as encodeBase64,
+} from "@stablelib/base64";
 import {
   SignalProtocolIndexDBStore,
   arrayBufferToString,
-  toArrayBuffer,
 } from "@/utils/EncryptedSignalStore";
 import { createID, getID, stringToArrayBuffer } from "@/utils/signal";
 import {
@@ -17,6 +20,8 @@ import {
   SignalProtocolAddress,
 } from "@privacyresearch/libsignal-protocol-typescript";
 import { set } from "idb-keyval";
+import AppDB from "@/utils/db";
+import { useRouter } from "next/navigation";
 
 const getUserData = async () =>
   fetch("http://localhost:3000/auth/me", {
@@ -32,6 +37,7 @@ const UserPage = () => {
   const [preKeybundle, setPreKeyBundle] = useState({} as any);
   const [signalStore, setSignalStore] =
     useState<SignalProtocolIndexDBStore | null>(null);
+  const [appDB, setAppDB] = useState<AppDB | null>(null);
   const [recipientName, setRecipientName] = useState<string>("boryss3");
   const [recipientBundle, setRecipientBundle] =
     useState<DeviceType<ArrayBuffer> | null>(null);
@@ -63,6 +69,13 @@ const UserPage = () => {
     }
     console.log("🚀 ~ initStore ~ savedId:", savedId);
     if (savedId) {
+      const testBuffer = savedId.identityKeyPair.privKey.toString();
+      console.log("json", JSON.stringify(savedId.identityKeyPair.privKey));
+      console.log(
+        "🚀 ~ getOrCreateID ~ testBuffer:",
+        testBuffer,
+        savedId.identityKeyPair.privKey
+      );
       setPreKeyBundle(savedId);
     }
   };
@@ -81,8 +94,13 @@ const UserPage = () => {
       setIsConnected(false);
       setTransport("N/A");
     }
-
+    const encoder = new TextEncoder();
+    const newInt8Array = new Uint8Array(32);
+    encoder.encodeInto("tmpsecretkey", newInt8Array);
+    const db = new AppDB(encodeBase64(newInt8Array));
+    setAppDB(db);
     async function init() {
+      await db.open();
       if (socket.connected) {
         onConnect();
       }
@@ -90,45 +108,80 @@ const UserPage = () => {
       const newUserData = await fetchedUser.json();
       setUser(newUserData);
     }
+
     init();
     const localsignalStore = new SignalProtocolIndexDBStore();
 
     setSignalStore(localsignalStore);
 
-    async function onMessageReceive(data: any) {
-      const sender = new SignalProtocolAddress(data.from, 1);
+    const onMessageReceive: ServerToClientEvents["message:receive"] = async (
+      messageData
+    ) => {
+      const SenderName = messageData.from as string;
+      const sender = new SignalProtocolAddress(SenderName, 1);
       const sessionCipher = new SessionCipher(localsignalStore, sender);
-
-      const message = data.message as MessageType;
+      const message = messageData.message as MessageType;
+      let contact = await db!.contacts.get({ name: messageData.from });
+      console.log("🚀 ~ onMessageReceive ~ contact:", contact);
+      if (!contact) {
+        const contactId = await db!.contacts.add({ name: SenderName });
+        contact = { id: contactId, name: SenderName };
+      }
       console.log("🚀 ~ socket.on ~ message:", message);
-
+      let decryptedMessage;
       if (message.type === 3) {
-        const decryptedMessage =
-          await sessionCipher.decryptPreKeyWhisperMessage(
-            message.body!,
-            "binary"
-          );
+        decryptedMessage = await sessionCipher.decryptPreKeyWhisperMessage(
+          message.body!,
+          "binary"
+        );
         console.log(arrayBufferToString(decryptedMessage), "decryptedMessage3");
-        return;
       } else if (message.type === 1) {
-        const decryptedMessage = await sessionCipher.decryptWhisperMessage(
+        decryptedMessage = await sessionCipher.decryptWhisperMessage(
           message.body!,
           "binary"
         );
         console.log(arrayBufferToString(decryptedMessage), "decryptedMessage1");
-        return;
       }
-    }
-
+      if (decryptedMessage) {
+        const decryptedMessageToSave = {
+          senderId: contact.id!,
+          timestamp: messageData.timestamp,
+          message: arrayBufferToString(decryptedMessage),
+        };
+        console.log("saving", decryptedMessageToSave);
+        await db!.messages.add(decryptedMessageToSave);
+      }
+      console.warn("Received message of not supported type");
+    };
+    const onMessageStored: ServerToClientEvents["messages:stored"] = async (
+      data
+    ) => {
+      const promises = Object.entries(data).map(
+        async ([senderUsername, messages]) => {
+          const messagesPromise = messages.map(async (message) =>
+            onMessageReceive({
+              from: message.from_user_username,
+              to: "test???",
+              message: message.message.message as MessageType,
+              timestamp: message.message.timestamp,
+            })
+          );
+          return Promise.all(messagesPromise);
+        }
+      );
+      await Promise.all(promises);
+    };
     socket.on("connect", onConnect);
     socket.on("disconnect", onDisconnect);
     socket.on("hello", (data: any) => console.log(data, "hello data"));
     socket.on("message:receive", onMessageReceive);
+    socket.on("messages:stored", onMessageStored);
 
     return () => {
       socket.off("connect", onConnect);
       socket.off("disconnect", onDisconnect);
       socket.off("message:receive", onMessageReceive);
+      socket.off("messages:stored", onMessageStored);
     };
   }, []);
 
@@ -158,7 +211,6 @@ const UserPage = () => {
         stringToArrayBuffer(testMessage).buffer
       );
       socket.emit("message:send", {
-        from: user.username,
         to: recipientName,
         message: encryptedMessage,
         timestamp: Date.now(),
