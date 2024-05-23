@@ -4,8 +4,9 @@ import { encrypted } from "@pvermeer/dexie-encrypted-addon";
 interface Message {
     id?: number;
     timestamp: number;
-    senderId: number;
+    contactId: number;
     message: string;
+    isFromMe?: boolean;
 }
 
 interface Contact {
@@ -22,8 +23,8 @@ export default class AppDB extends Dexie {
     constructor(secret: string) {
         super('MessageStore')
         encrypted(this, { secretKey: secret });
-        this.version(1).stores({
-            messages: '#id, $timestamp, senderId, $message',
+        this.version(2).stores({
+            messages: '#id, $timestamp, contactId, $message, isFromMe',
             contacts: '#id, name'
         })
     }

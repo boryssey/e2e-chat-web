@@ -2,7 +2,7 @@
 
 // import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
-import { ServerToClientEvents, socket } from "../socket";
+import { ClientToServerEvents, ServerToClientEvents, socket } from "../socket";
 import {
   decode as decodeBase64,
   encode as encodeBase64,
@@ -22,12 +22,20 @@ import {
 import { set } from "idb-keyval";
 import AppDB from "@/utils/db";
 import { useRouter } from "next/navigation";
+import { userInfo } from "os";
 
 const getUserData = async () =>
   fetch("http://localhost:3000/auth/me", {
     method: "GET",
     credentials: "include",
   });
+
+type User = {
+  id: number;
+  username: string;
+  created_at: Date | null;
+  deleted_at: Date | null;
+};
 
 const UserPage = () => {
   console.log("user called?");
@@ -41,7 +49,8 @@ const UserPage = () => {
   const [recipientName, setRecipientName] = useState<string>("boryss3");
   const [recipientBundle, setRecipientBundle] =
     useState<DeviceType<ArrayBuffer> | null>(null);
-  const [user, setUser] = useState<any>(null);
+
+  const [user, setUser] = useState<User | null>(null);
 
   const logoutHandler = useCallback(async () => {
     const res = await fetch("http://localhost:3000/auth/logout", {
@@ -59,7 +68,11 @@ const UserPage = () => {
     console.log("logout success");
   }, [router]);
 
-  const getOrCreateID = async () => {
+  const getOrCreateID = useCallback(async () => {
+    if (!user) {
+      console.error("no user");
+      return;
+    }
     const savedId = await getID(signalStore!);
     if (!savedId) {
       const keyBundle = await createID(user.username, signalStore!);
@@ -78,53 +91,20 @@ const UserPage = () => {
       );
       setPreKeyBundle(savedId);
     }
-  };
+  }, [signalStore, user]);
 
-  useEffect(() => {
-    function onConnect() {
-      setIsConnected(true);
-      setTransport(socket.io.engine.transport.name);
-
-      socket.io.engine.on("upgrade", (transport) => {
-        setTransport(transport.name);
-      });
-    }
-
-    function onDisconnect() {
-      setIsConnected(false);
-      setTransport("N/A");
-    }
-    const encoder = new TextEncoder();
-    const newInt8Array = new Uint8Array(32);
-    encoder.encodeInto("tmpsecretkey", newInt8Array);
-    const db = new AppDB(encodeBase64(newInt8Array));
-    setAppDB(db);
-    async function init() {
-      await db.open();
-      if (socket.connected) {
-        onConnect();
-      }
-      const fetchedUser = await getUserData();
-      const newUserData = await fetchedUser.json();
-      setUser(newUserData);
-    }
-
-    init();
-    const localsignalStore = new SignalProtocolIndexDBStore();
-
-    setSignalStore(localsignalStore);
-
-    const onMessageReceive: ServerToClientEvents["message:receive"] = async (
-      messageData
-    ) => {
-      const SenderName = messageData.from as string;
+  const onMessageReceive: ServerToClientEvents["message:receive"] = useCallback(
+    async (messageData) => {
+      const SenderName = messageData.from_user_username;
       const sender = new SignalProtocolAddress(SenderName, 1);
-      const sessionCipher = new SessionCipher(localsignalStore, sender);
+      const sessionCipher = new SessionCipher(signalStore!, sender);
       const message = messageData.message as MessageType;
-      let contact = await db!.contacts.get({ name: messageData.from });
+      let contact = await appDB!.contacts.get({
+        name: messageData.from_user_username,
+      });
       console.log("🚀 ~ onMessageReceive ~ contact:", contact);
       if (!contact) {
-        const contactId = await db!.contacts.add({ name: SenderName });
+        const contactId = await appDB!.contacts.add({ name: SenderName });
         contact = { id: contactId, name: SenderName };
       }
       console.log("🚀 ~ socket.on ~ message:", message);
@@ -144,50 +124,48 @@ const UserPage = () => {
       }
       if (decryptedMessage) {
         const decryptedMessageToSave = {
-          senderId: contact.id!,
+          contactId: contact.id!,
           timestamp: messageData.timestamp,
           message: arrayBufferToString(decryptedMessage),
         };
-        console.log("saving", decryptedMessageToSave);
-        await db!.messages.add(decryptedMessageToSave);
+        await appDB!.messages.add(decryptedMessageToSave);
+        socket.emit("message:ack", {
+          lastReceivedMessageId: messageData.id,
+        });
+        return;
       }
       console.warn("Received message of not supported type");
-    };
-    const onMessageStored: ServerToClientEvents["messages:stored"] = async (
-      data
-    ) => {
-      const promises = Object.entries(data).map(
-        async ([senderUsername, messages]) => {
-          const messagesPromise = messages.map(async (message) =>
-            onMessageReceive({
-              from: message.from_user_username,
-              to: "test???",
-              message: message.message.message as MessageType,
-              timestamp: message.message.timestamp,
-            })
-          );
-          return Promise.all(messagesPromise);
-        }
-      );
-      await Promise.all(promises);
-    };
-    socket.on("connect", onConnect);
-    socket.on("disconnect", onDisconnect);
-    socket.on("hello", (data: any) => console.log(data, "hello data"));
-    socket.on("message:receive", onMessageReceive);
-    socket.on("messages:stored", onMessageStored);
+    },
+    [appDB, signalStore]
+  );
 
-    return () => {
-      socket.off("connect", onConnect);
-      socket.off("disconnect", onDisconnect);
-      socket.off("message:receive", onMessageReceive);
-      socket.off("messages:stored", onMessageStored);
-    };
-  }, []);
+  const onMessageStored: ServerToClientEvents["messages:stored"] = async (
+    data
+  ) => {
+    const promises = Object.entries(data).map(
+      async ([senderUsername, messages]) => {
+        const messagesPromise = messages.map(async (message) =>
+          onMessageReceive({
+            id: message.message.id,
+            from_user_username: message.from_user_username,
+            from_user_id: message.from_user_user_id,
+            to_user_id: message.message.to_user_id,
+            message: message.message.message as MessageType,
+            timestamp: message.message.timestamp,
+          })
+        );
+        return Promise.all(messagesPromise);
+      }
+    );
+    await Promise.all(promises);
+  };
 
-  const buildSessionWithRecpient = async () => {
+  const onSendMessage = useCallback(async () => {
     const recipientAddress = new SignalProtocolAddress(recipientName, 1);
-
+    if (!user) {
+      console.error("No user yet");
+      return;
+    }
     try {
       let existingSession = await signalStore?.loadSession(
         recipientAddress.toString()
@@ -198,28 +176,103 @@ const UserPage = () => {
       );
       if (!existingSession) {
         console.log("session not found, creating new session");
+      }
+      let contact = await appDB!.contacts.get({
+        name: recipientName,
+      });
+      console.log("🚀 ~ onMessageReceive ~ contact:", contact);
+      if (!contact) {
+        const contactId = await appDB!.contacts.add({ name: user.username });
+        contact = { id: contactId, name: user.username };
+      }
+      // await sessionBuilder.processPreKey(transformedBundle);
+      const messageText = "Hello, this is a test message" + Date.now();
+      const sessionCipher = new SessionCipher(signalStore!, recipientAddress);
+      const hasOpenSession = await sessionCipher.hasOpenSession();
+      if (!hasOpenSession) {
         const sessionBuilder = new SessionBuilder(
           signalStore!,
           recipientAddress
         );
         await sessionBuilder.processPreKey(recipientBundle!);
       }
-      // await sessionBuilder.processPreKey(transformedBundle);
-      const testMessage = "Hello, this is a test message" + Date.now();
-      const sessionCipher = new SessionCipher(signalStore!, recipientAddress);
       const encryptedMessage = await sessionCipher.encrypt(
-        stringToArrayBuffer(testMessage).buffer
+        stringToArrayBuffer(messageText).buffer
       );
-      socket.emit("message:send", {
+
+      const messageToSend = {
         to: recipientName,
         message: encryptedMessage,
         timestamp: Date.now(),
+      };
+      socket.emit("message:send", messageToSend);
+
+      appDB?.messages.add({
+        contactId: contact.id!,
+        message: messageText,
+        timestamp: messageToSend.timestamp,
+        isFromMe: true,
       });
     } catch (error) {
       console.error(error);
     }
-    // console.log(sessionCipher, "sessionCipher");
-  };
+  }, [appDB, recipientBundle, recipientName, signalStore, user]);
+
+  useEffect(() => {
+    const encoder = new TextEncoder();
+    const newInt8Array = new Uint8Array(32);
+    encoder.encodeInto("tmpsecretkey", newInt8Array);
+    const db = new AppDB(encodeBase64(newInt8Array));
+    setAppDB(db);
+    async function init() {
+      socket.connect();
+      await db.open();
+      if (socket.connected) {
+        onConnect();
+      }
+      const fetchedUser = await getUserData();
+      const newUserData = await fetchedUser.json();
+      setUser(newUserData);
+    }
+
+    init();
+    const localsignalStore = new SignalProtocolIndexDBStore();
+
+    setSignalStore(localsignalStore);
+  }, []);
+
+  function onConnect() {
+    setIsConnected(true);
+    setTransport(socket.io.engine.transport.name);
+
+    socket.io.engine.on("upgrade", (transport) => {
+      setTransport(transport.name);
+    });
+  }
+
+  function onDisconnect() {
+    setIsConnected(false);
+    setTransport("N/A");
+  }
+
+  useEffect(() => {
+    socket.on("connect", onConnect);
+    socket.on("disconnect", onDisconnect);
+    if (!socket.connected && appDB && user && signalStore) {
+      socket.connect();
+    }
+
+    socket.on("hello", (data: any) => console.log(data, "hello data"));
+    socket.on("message:receive", onMessageReceive);
+    socket.on("messages:stored", onMessageStored);
+
+    return () => {
+      socket.off("connect", onConnect);
+      socket.off("disconnect", onDisconnect);
+      socket.off("message:receive", onMessageReceive);
+      socket.off("messages:stored", onMessageStored);
+    };
+  }, [appDB, onMessageReceive, onMessageStored, signalStore, user]);
 
   return (
     <>
@@ -227,7 +280,7 @@ const UserPage = () => {
       <button onClick={() => logoutHandler()}>Logout</button>
       <button
         onClick={async () => {
-          await buildSessionWithRecpient();
+          await onSendMessage();
         }}
       >
         Chat

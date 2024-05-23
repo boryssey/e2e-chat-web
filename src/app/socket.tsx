@@ -22,20 +22,25 @@ export interface ServerToClientEvents {
   ) => void | Promise<void>;
 
   "message:receive": (data: {
-    from: string;
-    to: string;
+    id: number;
     message: MessageType;
+    from_user_id: number;
+    from_user_username: string;
+    to_user_id: number;
     timestamp: number;
   }) => void | Promise<void>;
 
   hello: (data: { hello: "world" }) => void | Promise<void>;
 }
 
-interface ClientToServerEvents {
+export interface ClientToServerEvents {
   "message:send": (data: {
     to: string;
     message: MessageType;
     timestamp: number;
+  }) => void | Promise<void>;
+  "message:ack": (data: {
+    lastReceivedMessageId: number;
   }) => void | Promise<void>;
 }
 
