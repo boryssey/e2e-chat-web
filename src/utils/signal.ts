@@ -47,7 +47,20 @@ export const createID = async (
     oneTimePreKeys: [publicPreKey],
   };
   console.log('created preKeyBundle', preKeyBundle)
-  socket.emit("keyBundle:save", { username: name, keyBundle: preKeyBundle });
+  /*
+  console.log('created preKeyBundle', preKeyBundle)
+  const body = JSON.stringify(preKeyBundle)
+  const response = await fetch('http://localhost:3000/user/keyBundle', {
+    method: 'POST',
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body,
+  })
+
+  */
+  socket.emit("keyBundle:save", preKeyBundle); // refactor to be a post request
   return preKeyBundle;
 };
 export const stringToArrayBuffer = (str: string) => {

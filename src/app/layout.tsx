@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import "./globals.scss";
 import biotif from "./font";
 import { cookies } from "next/headers";
+import AuthProvider, { User } from "@/context/authContext";
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -20,7 +21,8 @@ const getUserInfo = async () => {
   });
   if (res.ok) {
     const data = await res.json();
-    return data;
+    console.log("🚀 ~ getUserInfo ~ data:", data);
+    return data as User;
   }
   console.error(res.statusText);
   return null;
@@ -35,11 +37,16 @@ export default async function RootLayout({
   user: React.ReactNode;
 }>) {
   const userInfo = await getUserInfo();
-  console.log("🚀 ~ userInfo:", userInfo);
 
   return (
     <html lang="en">
-      <body className={biotif.className}>{userInfo ? user : guest}</body>
+      <body className={biotif.className}>
+        {userInfo ? (
+          <AuthProvider userInfo={userInfo}> {user}</AuthProvider>
+        ) : (
+          guest
+        )}
+      </body>
     </html>
   );
 }

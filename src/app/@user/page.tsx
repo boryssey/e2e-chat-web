@@ -2,61 +2,73 @@
 
 // import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
-import { ClientToServerEvents, ServerToClientEvents, socket } from "../socket";
-import {
-  decode as decodeBase64,
-  encode as encodeBase64,
-} from "@stablelib/base64";
+import { ServerToClientEvents, socket } from "../socket";
+import { encode as encodeBase64 } from "@stablelib/base64";
 import {
   SignalProtocolIndexDBStore,
   arrayBufferToString,
 } from "@/utils/EncryptedSignalStore";
 import { createID, getID, stringToArrayBuffer } from "@/utils/signal";
 import {
-  DeviceType,
   MessageType,
   SessionBuilder,
   SessionCipher,
   SignalProtocolAddress,
 } from "@privacyresearch/libsignal-protocol-typescript";
-import { set } from "idb-keyval";
-import AppDB from "@/utils/db";
+import AppDB, { Contact } from "@/utils/db";
 import { useRouter } from "next/navigation";
-import { userInfo } from "os";
+import ContactList from "@/components/contactList";
+import Chat from "@/components/Chat";
+import { useAuthContext } from "@/context/authContext";
 
-const getUserData = async () =>
-  fetch("http://localhost:3000/auth/me", {
-    method: "GET",
-    credentials: "include",
-  });
-
-type User = {
-  id: number;
-  username: string;
-  created_at: Date | null;
-  deleted_at: Date | null;
+const getRemoteKeyBundle = async (username: string) => {
+  const fetchedBundle = await fetch(
+    `http://localhost:3000/user/${username}/keyBundle`,
+    {
+      method: "GET",
+      credentials: "include",
+    }
+  );
+  const data = await fetchedBundle.json();
+  console.log("🚀 ~ onClick={ ~ data:", data);
+  const transformedBundle = {
+    registrationId: data[0].key_bundles.registration_id,
+    preKey: {
+      keyId: data[0].one_time_keys.key_id,
+      publicKey: Uint8Array.from(data[0].one_time_keys.pub_key.data)
+        .buffer as ArrayBuffer,
+    },
+    signedPreKey: {
+      keyId: data[0].key_bundles.signed_pre_key_id,
+      publicKey: Uint8Array.from(
+        data[0].key_bundles.signed_pre_key_pub_key.data as number[]
+      ).buffer as ArrayBuffer,
+      signature: Uint8Array.from(
+        data[0].key_bundles.signed_pre_key_signature.data
+      ).buffer as ArrayBuffer,
+    },
+    identityKey: Uint8Array.from(data[0].key_bundles.identity_pub_key.data)
+      .buffer as ArrayBuffer,
+  };
+  return transformedBundle;
 };
 
 const UserPage = () => {
   console.log("user called?");
   const router = useRouter();
-  const [isConnected, setIsConnected] = useState(false);
-  const [transport, setTransport] = useState("N/A");
+  const [isConnected, setIsConnected] = useState(false); // messaging context
+  const [transport, setTransport] = useState("N/A"); // messaging context
   const [preKeybundle, setPreKeyBundle] = useState({} as any);
   const [signalStore, setSignalStore] =
-    useState<SignalProtocolIndexDBStore | null>(null);
-  const [appDB, setAppDB] = useState<AppDB | null>(null);
-  const [recipientName, setRecipientName] = useState<string>("boryss3");
-  const [recipientBundle, setRecipientBundle] =
-    useState<DeviceType<ArrayBuffer> | null>(null);
+    useState<SignalProtocolIndexDBStore | null>(null); // Signal context
+  const [appDB, setAppDB] = useState<AppDB | null>(null); // Signal context
+  const [recipientName, setRecipientName] = useState<string>("boryss3"); // tbd
+  const { user, logout } = useAuthContext();
 
-  const [user, setUser] = useState<User | null>(null);
+  const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
 
   const logoutHandler = useCallback(async () => {
-    const res = await fetch("http://localhost:3000/auth/logout", {
-      method: "GET",
-      credentials: "include",
-    });
+    const res = await logout();
     if (!res.ok) {
       console.error(res.statusText);
       return;
@@ -66,7 +78,7 @@ const UserPage = () => {
     router.refresh();
 
     console.log("logout success");
-  }, [router]);
+  }, [logout, router]);
 
   const getOrCreateID = useCallback(async () => {
     if (!user) {
@@ -96,6 +108,7 @@ const UserPage = () => {
   const onMessageReceive: ServerToClientEvents["message:receive"] = useCallback(
     async (messageData) => {
       const SenderName = messageData.from_user_username;
+      console.log("🚀 ~ SenderName:", SenderName);
       const sender = new SignalProtocolAddress(SenderName, 1);
       const sessionCipher = new SessionCipher(signalStore!, sender);
       const message = messageData.message as MessageType;
@@ -125,7 +138,7 @@ const UserPage = () => {
       if (decryptedMessage) {
         const decryptedMessageToSave = {
           contactId: contact.id!,
-          timestamp: messageData.timestamp,
+          timestamp: new Date(messageData.timestamp).getTime(),
           message: arrayBufferToString(decryptedMessage),
         };
         await appDB!.messages.add(decryptedMessageToSave);
@@ -139,84 +152,91 @@ const UserPage = () => {
     [appDB, signalStore]
   );
 
-  const onMessageStored: ServerToClientEvents["messages:stored"] = async (
-    data
-  ) => {
-    const promises = Object.entries(data).map(
-      async ([senderUsername, messages]) => {
-        const messagesPromise = messages.map(async (message) =>
-          onMessageReceive({
-            id: message.message.id,
-            from_user_username: message.from_user_username,
-            from_user_id: message.from_user_user_id,
-            to_user_id: message.message.to_user_id,
-            message: message.message.message as MessageType,
-            timestamp: message.message.timestamp,
-          })
+  const onMessageStored: ServerToClientEvents["messages:stored"] = useCallback(
+    async (data) => {
+      const promises = Object.entries(data).map(
+        async ([senderUsername, messages]) => {
+          const messagesPromise = messages.map(async (message) =>
+            onMessageReceive({
+              id: message.message.id,
+              from_user_username: message.from_user_username,
+              from_user_id: message.from_user_user_id,
+              to_user_id: message.message.to_user_id,
+              message: message.message.message as MessageType,
+              timestamp: message.message.timestamp,
+            })
+          );
+          return Promise.all(messagesPromise);
+        }
+      );
+      await Promise.all(promises);
+    },
+    [onMessageReceive]
+  );
+
+  const onSendMessage = useCallback(
+    async (messageText: string, recipientUsername: string) => {
+      const recipientAddress = new SignalProtocolAddress(recipientUsername, 1);
+      console.log("🚀 ~ onSendMessage ~ recipientName:", recipientUsername);
+      if (!user) {
+        console.error("No user yet");
+        return;
+      }
+      try {
+        let existingSession = await signalStore?.loadSession(
+          recipientAddress.toString()
         );
-        return Promise.all(messagesPromise);
-      }
-    );
-    await Promise.all(promises);
-  };
-
-  const onSendMessage = useCallback(async () => {
-    const recipientAddress = new SignalProtocolAddress(recipientName, 1);
-    if (!user) {
-      console.error("No user yet");
-      return;
-    }
-    try {
-      let existingSession = await signalStore?.loadSession(
-        recipientAddress.toString()
-      );
-      console.log(
-        "🚀 ~ buildSessionWithRecpient ~ existingSession:",
-        existingSession
-      );
-      if (!existingSession) {
-        console.log("session not found, creating new session");
-      }
-      let contact = await appDB!.contacts.get({
-        name: recipientName,
-      });
-      console.log("🚀 ~ onMessageReceive ~ contact:", contact);
-      if (!contact) {
-        const contactId = await appDB!.contacts.add({ name: user.username });
-        contact = { id: contactId, name: user.username };
-      }
-      // await sessionBuilder.processPreKey(transformedBundle);
-      const messageText = "Hello, this is a test message" + Date.now();
-      const sessionCipher = new SessionCipher(signalStore!, recipientAddress);
-      const hasOpenSession = await sessionCipher.hasOpenSession();
-      if (!hasOpenSession) {
-        const sessionBuilder = new SessionBuilder(
-          signalStore!,
-          recipientAddress
+        console.log(
+          "🚀 ~ buildSessionWithRecpient ~ existingSession:",
+          existingSession
         );
-        await sessionBuilder.processPreKey(recipientBundle!);
+        if (!existingSession) {
+          console.log("session not found, creating new session");
+        }
+        let contact = await appDB!.contacts.get({
+          name: recipientUsername,
+        });
+        console.log("🚀 ~ onSendMessage ~ contact:", contact);
+        if (!contact) {
+          const contactId = await appDB!.contacts.add({
+            name: recipientUsername,
+          });
+          contact = { id: contactId, name: recipientUsername };
+        }
+        // await sessionBuilder.processPreKey(transformedBundle);
+        const sessionCipher = new SessionCipher(signalStore!, recipientAddress);
+        const hasOpenSession = await sessionCipher.hasOpenSession();
+        if (!hasOpenSession) {
+          const sessionBuilder = new SessionBuilder(
+            signalStore!,
+            recipientAddress
+          );
+          const recipientBundle = await getRemoteKeyBundle(recipientUsername);
+          await sessionBuilder.processPreKey(recipientBundle);
+        }
+        const encryptedMessage = await sessionCipher.encrypt(
+          stringToArrayBuffer(messageText).buffer
+        );
+
+        const messageToSend = {
+          to: recipientName,
+          message: encryptedMessage,
+          timestamp: Date.now(),
+        };
+        socket.emit("message:send", messageToSend);
+
+        appDB?.messages.add({
+          contactId: contact.id!,
+          message: messageText,
+          timestamp: messageToSend.timestamp,
+          isFromMe: true,
+        });
+      } catch (error) {
+        console.error(error);
       }
-      const encryptedMessage = await sessionCipher.encrypt(
-        stringToArrayBuffer(messageText).buffer
-      );
-
-      const messageToSend = {
-        to: recipientName,
-        message: encryptedMessage,
-        timestamp: Date.now(),
-      };
-      socket.emit("message:send", messageToSend);
-
-      appDB?.messages.add({
-        contactId: contact.id!,
-        message: messageText,
-        timestamp: messageToSend.timestamp,
-        isFromMe: true,
-      });
-    } catch (error) {
-      console.error(error);
-    }
-  }, [appDB, recipientBundle, recipientName, signalStore, user]);
+    },
+    [appDB, recipientName, signalStore, user]
+  );
 
   useEffect(() => {
     const encoder = new TextEncoder();
@@ -225,14 +245,10 @@ const UserPage = () => {
     const db = new AppDB(encodeBase64(newInt8Array));
     setAppDB(db);
     async function init() {
-      socket.connect();
       await db.open();
       if (socket.connected) {
         onConnect();
       }
-      const fetchedUser = await getUserData();
-      const newUserData = await fetchedUser.json();
-      setUser(newUserData);
     }
 
     init();
@@ -242,6 +258,7 @@ const UserPage = () => {
   }, []);
 
   function onConnect() {
+    console.log("onConnect");
     setIsConnected(true);
     setTransport(socket.io.engine.transport.name);
 
@@ -259,14 +276,18 @@ const UserPage = () => {
     socket.on("connect", onConnect);
     socket.on("disconnect", onDisconnect);
     if (!socket.connected && appDB && user && signalStore) {
+      console.log("call connect");
       socket.connect();
     }
-
-    socket.on("hello", (data: any) => console.log(data, "hello data"));
+    function onHelloWorld(data: any) {
+      console.log(data, "hello data");
+    }
+    socket.on("hello", onHelloWorld);
     socket.on("message:receive", onMessageReceive);
     socket.on("messages:stored", onMessageStored);
 
     return () => {
+      socket.off("hello", onHelloWorld);
       socket.off("connect", onConnect);
       socket.off("disconnect", onDisconnect);
       socket.off("message:receive", onMessageReceive);
@@ -278,20 +299,7 @@ const UserPage = () => {
     <>
       <h1>UserPage</h1>
       <button onClick={() => logoutHandler()}>Logout</button>
-      <button
-        onClick={async () => {
-          await onSendMessage();
-        }}
-      >
-        Chat
-      </button>
-      <button
-        onClick={async () => {
-          await getOrCreateID();
-        }}
-      >
-        get keyBundle
-      </button>
+      <button onClick={() => getOrCreateID()}>Get or Create ID</button>
       <p>Status: {isConnected ? "connected" : "disconnected"}</p>
       <p>Transport: {transport}</p>
       <div>
@@ -300,49 +308,21 @@ const UserPage = () => {
           value={recipientName}
           onChange={(e) => setRecipientName(e.target.value)}
         />
-        <button
-          onClick={async () => {
-            const fetchedBundle = await fetch(
-              `http://localhost:3000/user/${recipientName}/keyBundle`,
-              {
-                method: "GET",
-                credentials: "include",
-              }
-            );
-            const data = await fetchedBundle.json();
-            console.log("🚀 ~ onClick={ ~ data:", data);
-            const transformedBundle = {
-              registrationId: data[0].key_bundles.registration_id,
-              preKey: {
-                keyId: data[0].one_time_keys.key_id,
-                publicKey: Uint8Array.from(data[0].one_time_keys.pub_key.data)
-                  .buffer as ArrayBuffer,
-              },
-              signedPreKey: {
-                keyId: data[0].key_bundles.signed_pre_key_id,
-                publicKey: Uint8Array.from(
-                  data[0].key_bundles.signed_pre_key_pub_key.data as number[]
-                ).buffer as ArrayBuffer,
-                signature: Uint8Array.from(
-                  data[0].key_bundles.signed_pre_key_signature.data
-                ).buffer as ArrayBuffer,
-              },
-              identityKey: Uint8Array.from(
-                data[0].key_bundles.identity_pub_key.data
-              ).buffer as ArrayBuffer,
-            };
-            setRecipientBundle(transformedBundle);
-            console.log(transformedBundle, "keyBundle");
-          }}
-        >
-          Fetch keybundle for user
-        </button>
       </div>
-      <p>
-        KeyBundle:
-        {JSON.stringify(preKeybundle)}
-      </p>
-      <p>Recipient bundle: {JSON.stringify(recipientBundle, null, 2)}</p>
+      {isConnected && appDB && (
+        <ContactList
+          selectedContact={selectedContact}
+          setSelectedContact={setSelectedContact}
+          appDB={appDB}
+        />
+      )}
+      {isConnected && appDB && selectedContact && (
+        <Chat
+          appDB={appDB}
+          onSendMessage={onSendMessage}
+          contact={selectedContact}
+        />
+      )}
     </>
   );
 };

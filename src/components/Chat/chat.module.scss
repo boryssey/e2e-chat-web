@@ -1,0 +1,44 @@
+.container { 
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    min-height: 200px;
+}
+
+
+.messageContainer { 
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    padding: 10px;
+    margin: 5px;
+    flex: 1;
+}
+
+
+.message {
+    align-self: flex-start;
+}
+
+.myMessage {
+    align-self: flex-end;
+}
+
+.inputContainer {
+    display: flex;
+
+    input {
+        flex: 1;
+        padding: 10px;
+    }
+
+    button {
+        padding: 10px 5px;
+        background-color: black;
+        color: white;
+        border: none;
+        cursor: pointer;
+        
+    }
+
+}

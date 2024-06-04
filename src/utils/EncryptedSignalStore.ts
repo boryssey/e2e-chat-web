@@ -70,9 +70,13 @@ type StoreValue =
 
 export class SignalProtocolIndexDBStore implements StorageType {
   private _store;
-
+  static dbName = "signal-store";
   constructor() {
-    this._store = createStore('custom-db-name', 'custom-store-name');
+    this._store = createStore(SignalProtocolIndexDBStore.dbName, 'custom-store-name');
+  }
+  
+  public static storeExists = async () => {
+    return (await window.indexedDB.databases()).map(db => db.name).includes(SignalProtocolIndexDBStore.dbName);
   }
 
   private get(key: IDBValidKey) {

@@ -1,6 +1,10 @@
 "use client";
 
-import { MessageType } from "@privacyresearch/libsignal-protocol-typescript";
+import {
+  MessageType,
+  PreKeyType,
+  SignedPublicPreKeyType,
+} from "@privacyresearch/libsignal-protocol-typescript";
 import { Socket, io } from "socket.io-client";
 
 export interface ServerToClientEvents {
@@ -41,6 +45,12 @@ export interface ClientToServerEvents {
   }) => void | Promise<void>;
   "message:ack": (data: {
     lastReceivedMessageId: number;
+  }) => void | Promise<void>;
+  "keyBundle:save": (data: {
+    registrationId: number;
+    identityPubKey: ArrayBuffer;
+    signedPreKey: SignedPublicPreKeyType<ArrayBuffer>;
+    oneTimePreKeys: PreKeyType<ArrayBuffer>[];
   }) => void | Promise<void>;
 }
 
