@@ -1,6 +1,6 @@
 "use client";
-import Button from "@/components/button";
-import Input from "@/components/input";
+import Button from "@/components/Button";
+import Input from "@/components/Input";
 import { useForm, SubmitHandler } from "react-hook-form";
 import styles from "../auth.module.scss";
 import { useState } from "react";
@@ -24,7 +24,7 @@ export default function LoginPage() {
   } = useForm<Inputs>();
 
   const onRegister: SubmitHandler<Inputs> = async (data) => {
-    const res = await fetch("http://localhost:3000/auth/register", {
+    const res = await fetch(`${process.env.BACKEND_URL}/auth/register`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

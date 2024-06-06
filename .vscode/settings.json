@@ -1,3 +1,5 @@
 {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "css.lint.validProperties": ["composes"],
+  "scss.lint.validProperties": ["composes"]
 }

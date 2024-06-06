@@ -1,3 +1,6 @@
+"use client";
+import SignalProvider from "@/context/signalContext";
+
 const UserLayout = ({
   children,
   chat,
@@ -6,7 +9,7 @@ const UserLayout = ({
   chat: React.ReactNode;
 }) => {
   console.log("user layout");
-  return <main>{children}</main>;
+  return <SignalProvider>{children}</SignalProvider>;
 };
 
 export default UserLayout;

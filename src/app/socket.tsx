@@ -55,7 +55,7 @@ export interface ClientToServerEvents {
 }
 
 export const socket: Socket<ServerToClientEvents, ClientToServerEvents> = io(
-  "http://localhost:3000",
+  process.env.BACKEND_URL!,
   {
     transports: ["websocket"],
     withCredentials: true,

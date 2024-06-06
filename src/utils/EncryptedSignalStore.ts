@@ -9,6 +9,7 @@ import {
 import { createStore, del, get, keys, set } from "idb-keyval";
 import React, { createContext } from "react";
 import { Store } from "secure-webstore";
+import AppDB from "./db";
 
 /*
     Examples are: 

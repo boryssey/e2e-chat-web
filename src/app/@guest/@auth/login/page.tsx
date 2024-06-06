@@ -1,6 +1,6 @@
 "use client";
-import Button from "@/components/button";
-import Input from "@/components/input";
+import Button from "@/components/Button";
+import Input from "@/components/Input";
 import { useRouter } from "next/navigation";
 import { useForm, SubmitHandler } from "react-hook-form";
 import styles from "../auth.module.scss";
@@ -25,7 +25,7 @@ export default function LoginPage() {
   const onLogin: SubmitHandler<Inputs> = useCallback(
     async (data) => {
       console.log("onLogin, ;");
-      const res = await fetch("http://localhost:3000/auth/login", {
+      const res = await fetch(`${process.env.BACKEND_URL}/auth/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

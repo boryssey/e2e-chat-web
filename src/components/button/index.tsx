@@ -23,13 +23,14 @@ const Arrow = () => {
 const Button = ({
   children,
   withArrow = false,
+  color = "primary",
   ...props
-}: { withArrow?: boolean } & DetailedHTMLProps<
+}: { withArrow?: boolean; color?: "primary" | "secondary" } & DetailedHTMLProps<
   ButtonHTMLAttributes<HTMLButtonElement>,
   HTMLButtonElement
 >) => {
   return (
-    <button className={styles.button} {...props}>
+    <button className={styles[color]} {...props}>
       {children} {withArrow && <Arrow />}
     </button>
   );

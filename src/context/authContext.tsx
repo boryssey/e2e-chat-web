@@ -24,7 +24,7 @@ export type User = {
 };
 
 const logout = async () =>
-  fetch("http://localhost:3000/auth/logout", {
+  fetch(`${process.env.BACKEND_URL}/auth/logout`, {
     method: "GET",
     credentials: "include",
   });

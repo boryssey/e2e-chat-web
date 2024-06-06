@@ -1,4 +1,4 @@
-.button {
+.common {
     font-size: 16px;
     font-weight: 300;
     gap: 12px;
@@ -13,14 +13,18 @@
         transform: translateX(0px);
     }
 
-    &:focus {
-        // outline: none;
-        // border-radius: 1px solid black;
-    }
-
     &:hover {
         svg {
             transform: translateX(8px);
         }
     }
+}
+
+.primary {
+    composes: common;
+}
+
+.secondary {
+    composes: common;
+    color: white
 }

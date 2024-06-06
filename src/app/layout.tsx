@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 const getUserInfo = async () => {
   const cookieStore = cookies();
 
-  const res = await fetch("http://localhost:3000/auth/me", {
+  const res = await fetch(`${process.env.BACKEND_URL}/auth/me`, {
     headers: {
       Cookie: cookieStore.toString(),
     },

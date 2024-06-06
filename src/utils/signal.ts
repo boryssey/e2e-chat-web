@@ -60,7 +60,7 @@ export const createID = async (
   })
 
   */
-  socket.emit("keyBundle:save", preKeyBundle); // refactor to be a post request
+  socket.emit("keyBundle:save", preKeyBundle);
   return preKeyBundle;
 };
 export const stringToArrayBuffer = (str: string) => {

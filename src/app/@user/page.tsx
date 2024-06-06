@@ -3,7 +3,6 @@
 // import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { ServerToClientEvents, socket } from "../socket";
-import { encode as encodeBase64 } from "@stablelib/base64";
 import {
   SignalProtocolIndexDBStore,
   arrayBufferToString,
@@ -17,13 +16,14 @@ import {
 } from "@privacyresearch/libsignal-protocol-typescript";
 import AppDB, { Contact } from "@/utils/db";
 import { useRouter } from "next/navigation";
-import ContactList from "@/components/contactList";
+import ContactList from "@/components/ContactList";
 import Chat from "@/components/Chat";
 import { useAuthContext } from "@/context/authContext";
+import { useSignalContext } from "@/context/signalContext";
 
 const getRemoteKeyBundle = async (username: string) => {
   const fetchedBundle = await fetch(
-    `http://localhost:3000/user/${username}/keyBundle`,
+    `${process.env.BACKEND_URL}/user/${username}/keyBundle`,
     {
       method: "GET",
       credentials: "include",
@@ -58,13 +58,9 @@ const UserPage = () => {
   const router = useRouter();
   const [isConnected, setIsConnected] = useState(false); // messaging context
   const [transport, setTransport] = useState("N/A"); // messaging context
-  const [preKeybundle, setPreKeyBundle] = useState({} as any);
-  const [signalStore, setSignalStore] =
-    useState<SignalProtocolIndexDBStore | null>(null); // Signal context
-  const [appDB, setAppDB] = useState<AppDB | null>(null); // Signal context
   const [recipientName, setRecipientName] = useState<string>("boryss3"); // tbd
   const { user, logout } = useAuthContext();
-
+  const { appDB, signalStore } = useSignalContext();
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
 
   const logoutHandler = useCallback(async () => {
@@ -89,7 +85,6 @@ const UserPage = () => {
     if (!savedId) {
       const keyBundle = await createID(user.username, signalStore!);
       console.log("🚀 ~ getOrCreateID ~ keyBundle:", keyBundle);
-      setPreKeyBundle(keyBundle);
       return;
     }
     console.log("🚀 ~ initStore ~ savedId:", savedId);
@@ -101,7 +96,6 @@ const UserPage = () => {
         testBuffer,
         savedId.identityKeyPair.privKey
       );
-      setPreKeyBundle(savedId);
     }
   }, [signalStore, user]);
 
@@ -237,25 +231,6 @@ const UserPage = () => {
     },
     [appDB, recipientName, signalStore, user]
   );
-
-  useEffect(() => {
-    const encoder = new TextEncoder();
-    const newInt8Array = new Uint8Array(32);
-    encoder.encodeInto("tmpsecretkey", newInt8Array);
-    const db = new AppDB(encodeBase64(newInt8Array));
-    setAppDB(db);
-    async function init() {
-      await db.open();
-      if (socket.connected) {
-        onConnect();
-      }
-    }
-
-    init();
-    const localsignalStore = new SignalProtocolIndexDBStore();
-
-    setSignalStore(localsignalStore);
-  }, []);
 
   function onConnect() {
     console.log("onConnect");
