@@ -3,10 +3,7 @@
 // import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { ServerToClientEvents, socket } from "../socket";
-import {
-  SignalProtocolIndexDBStore,
-  arrayBufferToString,
-} from "@/utils/EncryptedSignalStore";
+import { arrayBufferToString } from "@/utils/EncryptedSignalStore";
 import { createID, getID, stringToArrayBuffer } from "@/utils/signal";
 import {
   MessageType,
@@ -19,7 +16,7 @@ import { useRouter } from "next/navigation";
 import ContactList from "@/components/ContactList";
 import Chat from "@/components/Chat";
 import { useAuthContext } from "@/context/authContext";
-import { useSignalContext } from "@/context/signalContext";
+import { useStoreContext } from "@/context/storeContext";
 
 const getRemoteKeyBundle = async (username: string) => {
   const fetchedBundle = await fetch(
@@ -60,7 +57,7 @@ const UserPage = () => {
   const [transport, setTransport] = useState("N/A"); // messaging context
   const [recipientName, setRecipientName] = useState<string>("boryss3"); // tbd
   const { user, logout } = useAuthContext();
-  const { appDB, signalStore } = useSignalContext();
+  const { appDB, signalStore } = useStoreContext();
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
 
   const logoutHandler = useCallback(async () => {
@@ -82,6 +79,7 @@ const UserPage = () => {
       return;
     }
     const savedId = await getID(signalStore!);
+    console.log("🚀 ~ getOrCreateID ~ savedId:", savedId);
     if (!savedId) {
       const keyBundle = await createID(user.username, signalStore!);
       console.log("🚀 ~ getOrCreateID ~ keyBundle:", keyBundle);

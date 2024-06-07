@@ -6,9 +6,6 @@ import {
   SignalProtocolAddress,
   StorageType,
 } from "@privacyresearch/libsignal-protocol-typescript";
-import { createStore, del, get, keys, set } from "idb-keyval";
-import React, { createContext } from "react";
-import { Store } from "secure-webstore";
 import AppDB from "./db";
 
 /*
@@ -21,7 +18,7 @@ import AppDB from "./db";
 
 */
 
-const defaultState = {};
+
 
 export function arrayBufferToString(b: ArrayBuffer): string {
   return uint8ArrayToString(new Uint8Array(b));
@@ -72,32 +69,44 @@ type StoreValue =
 export class SignalProtocolIndexDBStore implements StorageType {
   private _store;
   static dbName = "signal-store";
-  constructor() {
-    this._store = createStore(SignalProtocolIndexDBStore.dbName, 'custom-store-name');
+
+  constructor(appDB: AppDB) {
+    this._store = appDB;
   }
   
   public static storeExists = async () => {
     return (await window.indexedDB.databases()).map(db => db.name).includes(SignalProtocolIndexDBStore.dbName);
   }
 
-  private get(key: IDBValidKey) {
-    return get(key, this._store);
+  private async get(key: string) {
+    return (await this._store.signalStoreItems.get(key))?.value;
+    // return get(key, this._store);
   }
 
-  private set(key: IDBValidKey, value: StoreValue) {
-    return set(key, value, this._store);
+  private async set(key: string, value: StoreValue) {
+    await this._store.signalStoreItems.put({key, value});
+    // return set(key, value, this._store);
   }
 
-  private del(key: IDBValidKey) {
-    return del(key);
+  private async del(key: string) {
+    return this._store.signalStoreItems.delete(key);
   }
 
   async getIdentityKeyPair(): Promise<KeyPairType | undefined>{
-    return this.get("identityKey");
+    const keyPair = await this.get("identityKey");
+    if (isKeyPairType(keyPair)) {
+      return keyPair;
+    }
+    return undefined;
   }
 
   getLocalRegistrationId = async () => {
-    return this.get("registrationId");
+    const localRegistrationId = await this.get("registrationId");
+    console.log("🚀 ~ SignalProtocolIndexDBStore ~ getLocalRegistrationId= ~ localRegistrationId:", localRegistrationId)
+    if(localRegistrationId && !isNaN(+localRegistrationId)) {
+      return Number(localRegistrationId);
+    }
+    return undefined;
   }
 
   saveLocalRegistrationId = async (id: string) => {
@@ -109,8 +118,8 @@ export class SignalProtocolIndexDBStore implements StorageType {
   } 
 
   async getOneTimePreKeys() {
-    const allKeys = await keys(this._store);
-    const oneTimeKeys = Promise.all(allKeys.filter((key) => (key as string).startsWith("preKey:")).map(async (key) => this.get(key)));
+    const allKeys = (await this._store.signalStoreItems.toCollection().keys()) as Array<string>;
+    const oneTimeKeys = Promise.all(allKeys.filter((key) => key.startsWith("preKey:")).map(async (key) => this.get(key)));
     return oneTimeKeys;
   }
 
@@ -165,9 +174,6 @@ export class SignalProtocolIndexDBStore implements StorageType {
 
     return false;
   }
-  //   loadPreKey: (
-  //     encodedAddress: string | number
-  //   ) => Promise<KeyPairType<ArrayBuffer> | undefined>;
 
   async loadPreKey(encodedAddress: string | number) {
     const savedPreKey = await this.get("preKey:" + encodedAddress);
@@ -201,11 +207,15 @@ export class SignalProtocolIndexDBStore implements StorageType {
     encodedAddress: string
   ) => {
     console.log('loading session', encodedAddress)
-    return this.get("session:" + encodedAddress);
+    const session = this.get("session:" + encodedAddress);
+    if (typeof session === "string") {
+      return session;
+    }
+    return undefined;
   };
 
   getAllSignedPreKeys = async () => {
-    const allKeys = await keys(this._store);
+    const allKeys = await this._store.signalStoreItems.toCollection().keys();
     const signePreKeys = Promise.all(allKeys.filter((key) => (key as string).startsWith("signedPreKey:")).map(async (key) => this.loadSignedPreKey((key as string).replace("signedPreKey:", ""))));
     return signePreKeys;
   }
@@ -217,10 +227,8 @@ export class SignalProtocolIndexDBStore implements StorageType {
   ) => {
     console.log('keyId', keyId)
     const savedPreKey = await this.get("signedPreKey:" + keyId);
+
     console.log("🚀 ~ SignalProtocolIndexDBStore ~ savedPreKey:", savedPreKey)
-    if(savedPreKey && savedPreKey.pubKey) {
-      console.log(savedPreKey.pubKey, 'savedPreKey.pubKey')
-    }
     if (isKeyPairType(savedPreKey)) {
       return {
         pubKey: savedPreKey.pubKey,

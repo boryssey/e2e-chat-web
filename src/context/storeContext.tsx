@@ -4,16 +4,16 @@ import { createContext, useContext, useEffect, useState } from "react";
 import { encode as encodeBase64 } from "@stablelib/base64";
 import PasswordPrompt from "@/components/PasswordPrompt";
 
-interface ISignalContext {
+interface IStoreContext {
   status: StatusType;
   appDB: AppDB;
   signalStore: SignalProtocolIndexDBStore;
 }
 
-const SignalContext = createContext<ISignalContext | null>(null);
+const StoreContext = createContext<IStoreContext | null>(null);
 
-export const useSignalContext = () => {
-  const signalContext = useContext(SignalContext);
+export const useStoreContext = () => {
+  const signalContext = useContext(StoreContext);
   if (!signalContext) {
     throw new Error("useSignalContext must be used within a SignalProvider");
   }
@@ -29,7 +29,7 @@ const makeSecretKey = (key: string) => {
   return encodeBase64(newInt8Array);
 };
 
-const SignalProvider = ({ children }: { children: React.ReactNode }) => {
+const StoreProvider = ({ children }: { children: React.ReactNode }) => {
   // appDb
   const [appDB, setAppDB] = useState<AppDB | null>(null);
   const [signalStore, setSignalStore] =
@@ -51,19 +51,16 @@ const SignalProvider = ({ children }: { children: React.ReactNode }) => {
 
   const onInitDBs = async (password: string) => {
     console.log(password, "password");
-    const key = makeSecretKey(password);
+    const key = makeSecretKey(password); // use easy-web-crypto for creating a master password
     console.log("🚀 ~ init ~ key:", key);
     const appDB = new AppDB(key);
     await appDB.open();
-    const localSignalStore = new SignalProtocolIndexDBStore(); // use AppDB for signal store
+    const localSignalStore = new SignalProtocolIndexDBStore(appDB); // use AppDB for signal store
     setSignalStore(localSignalStore);
     setAppDB(appDB);
     setStatus("authenticated");
   };
   console.log("re-render");
-  // signal store
-  // check if signalStore exists, show password prompt and init both signalStore and appDB
-  // check if appDB store exists
 
   if (!status) {
     return <div>Loading...</div>;
@@ -91,7 +88,7 @@ const SignalProvider = ({ children }: { children: React.ReactNode }) => {
 
   if (appDB && signalStore) {
     return (
-      <SignalContext.Provider
+      <StoreContext.Provider
         value={{
           status: status,
           appDB: appDB,
@@ -99,11 +96,11 @@ const SignalProvider = ({ children }: { children: React.ReactNode }) => {
         }}
       >
         {children}
-      </SignalContext.Provider>
+      </StoreContext.Provider>
     );
   }
 
   throw new Error("SignalProvider: unexpected state");
 };
 
-export default SignalProvider;
+export default StoreProvider;

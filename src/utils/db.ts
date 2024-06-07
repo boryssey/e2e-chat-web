@@ -9,23 +9,47 @@ export interface Message {
     isFromMe?: boolean;
 }
 
+export interface KeyPairType<T = ArrayBuffer> {
+    pubKey: T;
+    privKey: T;
+}
+export interface PreKeyType<T = ArrayBuffer> {
+    keyId: number;
+    publicKey: T;
+}
+
 export interface Contact {
     id?: string;
     name: string;
 }
 
+type StoreValue =
+  | string
+  | number
+  | KeyPairType
+  | PreKeyType
+  | ArrayBuffer
+  | undefined;
 
+export interface SignalStoreItem {
+    key: string;
+    value: StoreValue
+}
 
 export default class AppDB extends Dexie {
     messages!: Dexie.Table<Message, string>;
     contacts!: Dexie.Table<Contact, string>;
+    signalStoreItems!: Dexie.Table<SignalStoreItem, string>; 
+
+
     private static dbName = 'MessageStore';
     constructor(secret: string) {
         super(AppDB.dbName)
         encrypted(this, { secretKey: secret });
-        this.version(2).stores({
+        this.version(3).stores({
             messages: '#id, $timestamp, contactId, $message, isFromMe',
-            contacts: '#id, name'
+            contacts: '#id, name',
+            signalStoreItems: 'key, $value'
         })
     }
 
