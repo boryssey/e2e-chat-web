@@ -4,11 +4,11 @@ import { SubmitHandler, useForm } from "react-hook-form";
 import Button from "../Button";
 import styles from "./passwordPrompt.module.scss";
 
-type PasswordPromptProps = {
-  onSubmit: (password: string) => void | Promise<void>;
+interface PasswordPromptProps {
+  onSubmit: (password: string, withCreateID?: boolean) => void | Promise<void>;
   promptLabel: string | React.ReactNode;
   withConfirmation?: boolean;
-};
+}
 
 type Inputs<T> = T extends true
   ? {
@@ -33,14 +33,18 @@ const PasswordPrompt = ({
   } = useForm<Inputs<typeof withConfirmation>>();
 
   const onFormSubmit: SubmitHandler<Inputs<typeof withConfirmation>> = (
-    data
+    data,
+    event,
   ) => {
-    onSubmit(data.password);
+    console.log(event, "event");
+
+    event?.preventDefault();
+    void onSubmit(data.password, withConfirmation);
   };
 
   return (
     <main className={styles.container}>
-      <form onSubmit={handleSubmit(onFormSubmit)}>
+      <form onSubmit={handleSubmit(onFormSubmit)} id="passwordPromptForm">
         <p>{promptLabel}</p>
         <Input
           color="secondary"
@@ -73,7 +77,9 @@ const PasswordPrompt = ({
             }),
           })}
           value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          onChange={(e) => {
+            setPassword(e.target.value);
+          }}
         />
         {withConfirmation && (
           <Input
@@ -93,9 +99,6 @@ const PasswordPrompt = ({
             id="passwordConfirmation"
           />
         )}
-        <Button type="submit" color="secondary">
-          Submit
-        </Button>
         {Object.values(errors).length > 0 && (
           <div className={styles.errorWrapper}>
             {Object.values(errors).map((error, index) => (
@@ -104,6 +107,9 @@ const PasswordPrompt = ({
           </div>
         )}
       </form>
+      <Button form="passwordPromptForm" color="secondary">
+        Submit
+      </Button>
     </main>
   );
 };

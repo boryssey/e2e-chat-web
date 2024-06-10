@@ -22,7 +22,7 @@ export interface ServerToClientEvents {
           timestamp: number;
         };
       }[]
-    >
+    >,
   ) => void | Promise<void>;
 
   "message:receive": (data: {
@@ -43,22 +43,34 @@ export interface ClientToServerEvents {
     message: MessageType;
     timestamp: number;
   }) => void | Promise<void>;
-  "message:ack": (data: {
-    lastReceivedMessageId: number;
-  }) => void | Promise<void>;
+  "message:ack": (
+    data: {
+      lastReceivedMessageId: number;
+    },
+    callback: (data: { success: boolean }) => void,
+  ) => void | Promise<void>;
   "keyBundle:save": (data: {
     registrationId: number;
     identityPubKey: ArrayBuffer;
-    signedPreKey: SignedPublicPreKeyType<ArrayBuffer>;
-    oneTimePreKeys: PreKeyType<ArrayBuffer>[];
+    signedPreKey: SignedPublicPreKeyType;
+    oneTimePreKeys: PreKeyType[];
   }) => void | Promise<void>;
 }
 
 export const socket: Socket<ServerToClientEvents, ClientToServerEvents> = io(
-  process.env.BACKEND_URL!,
+  process.env.NEXT_PUBLIC_BACKEND_URL!,
   {
     transports: ["websocket"],
     withCredentials: true,
     autoConnect: false,
-  }
+    ackTimeout: 10000,
+    retries: 3,
+  },
 );
+
+export declare type DisconnectDescription =
+  | Error
+  | {
+      description: string;
+      context?: unknown;
+    };

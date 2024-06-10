@@ -1,9 +1,11 @@
 //authContext
 import {
   Direction,
+  KeyHelper,
   KeyPairType,
   PreKeyType,
   SignalProtocolAddress,
+  SignedPublicPreKeyType,
   StorageType,
 } from "@privacyresearch/libsignal-protocol-typescript";
 import AppDB from "./db";
@@ -18,14 +20,15 @@ import AppDB from "./db";
 
 */
 
-
-
 export function arrayBufferToString(b: ArrayBuffer): string {
   return uint8ArrayToString(new Uint8Array(b));
 }
 
 export function toArrayBuffer(buffer: Buffer) {
-  return buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength);
+  return buffer.buffer.slice(
+    buffer.byteOffset,
+    buffer.byteOffset + buffer.byteLength,
+  );
 }
 
 export function uint8ArrayToString(arr: Uint8Array): string {
@@ -50,12 +53,13 @@ function isArrayBuffer(thing: StoreValue): boolean {
     !!thing &&
     t !== "string" &&
     t !== "number" &&
-    "byteLength" in (thing as any)
+    "byteLength" in (thing as ArrayBuffer)
   );
 }
 
-export function isKeyPairType(kp: any): kp is KeyPairType {
-  return !!(kp?.privKey && kp?.pubKey);
+export function isKeyPairType(kp: StoreValue): kp is KeyPairType {
+  // return !!(kp?.privKey && kp?.pubKey);
+  return !!(kp && typeof kp === "object" && "privKey" in kp && "pubKey" in kp);
 }
 
 type StoreValue =
@@ -73,10 +77,12 @@ export class SignalProtocolIndexDBStore implements StorageType {
   constructor(appDB: AppDB) {
     this._store = appDB;
   }
-  
+
   public static storeExists = async () => {
-    return (await window.indexedDB.databases()).map(db => db.name).includes(SignalProtocolIndexDBStore.dbName);
-  }
+    return (await window.indexedDB.databases())
+      .map((db) => db.name)
+      .includes(SignalProtocolIndexDBStore.dbName);
+  };
 
   private async get(key: string) {
     return (await this._store.signalStoreItems.get(key))?.value;
@@ -84,7 +90,7 @@ export class SignalProtocolIndexDBStore implements StorageType {
   }
 
   private async set(key: string, value: StoreValue) {
-    await this._store.signalStoreItems.put({key, value});
+    await this._store.signalStoreItems.put({ key, value });
     // return set(key, value, this._store);
   }
 
@@ -92,7 +98,7 @@ export class SignalProtocolIndexDBStore implements StorageType {
     return this._store.signalStoreItems.delete(key);
   }
 
-  async getIdentityKeyPair(): Promise<KeyPairType | undefined>{
+  async getIdentityKeyPair(): Promise<KeyPairType | undefined> {
     const keyPair = await this.get("identityKey");
     if (isKeyPairType(keyPair)) {
       return keyPair;
@@ -102,31 +108,36 @@ export class SignalProtocolIndexDBStore implements StorageType {
 
   getLocalRegistrationId = async () => {
     const localRegistrationId = await this.get("registrationId");
-    console.log("🚀 ~ SignalProtocolIndexDBStore ~ getLocalRegistrationId= ~ localRegistrationId:", localRegistrationId)
-    if(localRegistrationId && !isNaN(+localRegistrationId)) {
+    if (localRegistrationId && !isNaN(+localRegistrationId)) {
       return Number(localRegistrationId);
     }
     return undefined;
-  }
+  };
 
   saveLocalRegistrationId = async (id: string) => {
     return this.set("registrationId", id);
-  }
+  };
 
   async saveIdentityKeyPair(keyPair: KeyPairType) {
     return this.set("identityKey", keyPair);
-  } 
+  }
 
   async getOneTimePreKeys() {
-    const allKeys = (await this._store.signalStoreItems.toCollection().keys()) as Array<string>;
-    const oneTimeKeys = Promise.all(allKeys.filter((key) => key.startsWith("preKey:")).map(async (key) => this.get(key)));
+    const allKeys = (await this._store.signalStoreItems
+      .toCollection()
+      .keys()) as string[];
+    const oneTimeKeys = Promise.all(
+      allKeys
+        .filter((key) => key.startsWith("preKey:"))
+        .map(async (key) => this.get(key)),
+    );
     return oneTimeKeys;
   }
 
   async isTrustedIdentity(
     identifier: string,
-    identityKey: ArrayBuffer,
-    _direction: Direction
+    identityKey: ArrayBuffer | undefined,
+    _direction: Direction,
   ) {
     if (!identifier || !identityKey) {
       throw new Error("identifier or identityKey is missing");
@@ -142,7 +153,7 @@ export class SignalProtocolIndexDBStore implements StorageType {
     // check if the identity key is the same
     return Promise.resolve(
       arrayBufferToString(identityKey) ===
-        arrayBufferToString(trusted as ArrayBuffer)
+        arrayBufferToString(trusted as ArrayBuffer),
     );
 
     // return true;
@@ -151,14 +162,11 @@ export class SignalProtocolIndexDBStore implements StorageType {
   async saveIdentity(
     encodedAddress: string,
     publicKey: ArrayBuffer,
-    _nonblockingApproval?: boolean | undefined
+    _nonblockingApproval?: boolean | undefined,
   ) {
     const address = SignalProtocolAddress.fromString(encodedAddress);
-    if (!address) {
-      throw new Error("Address is missing");
-    }
     const existing = await this.get("identifierKey:" + address.name);
-    this.set("identifierKey:" + address.name, publicKey);
+    await this.set("identifierKey:" + address.name, publicKey);
 
     if (existing && !isArrayBuffer(existing)) {
       throw new Error("public identity key is not of correct type");
@@ -177,7 +185,6 @@ export class SignalProtocolIndexDBStore implements StorageType {
 
   async loadPreKey(encodedAddress: string | number) {
     const savedPreKey = await this.get("preKey:" + encodedAddress);
-    console.log("🚀 ~ SignalProtocolIndexDBStore ~ loadPreKey ~ savedPreKey:", savedPreKey)
     if (isKeyPairType(savedPreKey)) {
       return {
         pubKey: savedPreKey.pubKey,
@@ -189,14 +196,13 @@ export class SignalProtocolIndexDBStore implements StorageType {
     throw new Error("preKey is not of correct type");
   }
 
-  async storePreKey(keyId: string | number, keyPair: KeyPairType<ArrayBuffer>) {
+  async storePreKey(keyId: string | number, keyPair: KeyPairType) {
     return this.set("preKey:" + keyId, keyPair);
   }
 
   removePreKey: (keyId: string | number) => Promise<void> = async (
-    keyId: string | number
+    keyId: string | number,
   ) => {
-    console.log('should remove keyId', keyId)
     return this.del("preKey:" + keyId);
   };
   storeSession: (encodedAddress: string, record: string) => Promise<void> =
@@ -204,10 +210,9 @@ export class SignalProtocolIndexDBStore implements StorageType {
       return this.set("session:" + encodedAddress, record);
     };
   loadSession: (encodedAddress: string) => Promise<string | undefined> = async (
-    encodedAddress: string
+    encodedAddress: string,
   ) => {
-    console.log('loading session', encodedAddress)
-    const session = this.get("session:" + encodedAddress);
+    const session = await this.get("session:" + encodedAddress);
     if (typeof session === "string") {
       return session;
     }
@@ -216,19 +221,21 @@ export class SignalProtocolIndexDBStore implements StorageType {
 
   getAllSignedPreKeys = async () => {
     const allKeys = await this._store.signalStoreItems.toCollection().keys();
-    const signePreKeys = Promise.all(allKeys.filter((key) => (key as string).startsWith("signedPreKey:")).map(async (key) => this.loadSignedPreKey((key as string).replace("signedPreKey:", ""))));
+    const signePreKeys = Promise.all(
+      allKeys
+        .filter((key) => (key as string).startsWith("signedPreKey:"))
+        .map(async (key) =>
+          this.loadSignedPreKey((key as string).replace("signedPreKey:", "")),
+        ),
+    );
     return signePreKeys;
-  }
+  };
 
   loadSignedPreKey: (
-    keyId: string | number
-  ) => Promise<KeyPairType<ArrayBuffer> | undefined> = async (
-    keyId: string | number
-  ) => {
-    console.log('keyId', keyId)
+    keyId: string | number,
+  ) => Promise<KeyPairType | undefined> = async (keyId: string | number) => {
     const savedPreKey = await this.get("signedPreKey:" + keyId);
 
-    console.log("🚀 ~ SignalProtocolIndexDBStore ~ savedPreKey:", savedPreKey)
     if (isKeyPairType(savedPreKey)) {
       return {
         pubKey: savedPreKey.pubKey,
@@ -242,13 +249,73 @@ export class SignalProtocolIndexDBStore implements StorageType {
 
   storeSignedPreKey: (
     keyId: string | number,
-    keyPair: KeyPairType<ArrayBuffer>
+    keyPair: KeyPairType,
   ) => Promise<void> = async (keyId: string | number, keyPair) => {
     return this.set("signedPreKey:" + keyId, keyPair);
   };
   removeSignedPreKey: (keyId: string | number) => Promise<void> = async (
-    keyId: string | number
+    keyId: string | number,
   ) => {
     return this.del("signedPreKey:" + keyId);
+  };
+
+  createID = async () => {
+    const registrationId = KeyHelper.generateRegistrationId();
+    await this.saveLocalRegistrationId(registrationId.toString());
+
+    const identityKeyPair = await KeyHelper.generateIdentityKeyPair();
+    await this.saveIdentityKeyPair(identityKeyPair);
+
+    const baseKeyId = Math.floor(10000 * Math.random());
+    const preKey = await KeyHelper.generatePreKey(baseKeyId);
+    await this.storePreKey(`${baseKeyId}`, preKey.keyPair);
+
+    const signedPreKeyId = Math.floor(10000 * Math.random());
+    const signedPreKey = await KeyHelper.generateSignedPreKey(
+      identityKeyPair,
+      signedPreKeyId,
+    );
+    await this.storeSignedPreKey(signedPreKeyId, signedPreKey.keyPair);
+    const publicSignedPreKey: SignedPublicPreKeyType = {
+      keyId: signedPreKeyId,
+      publicKey: signedPreKey.keyPair.pubKey,
+      signature: signedPreKey.signature,
+    };
+
+    const publicPreKey: PreKeyType = {
+      keyId: preKey.keyId,
+      publicKey: preKey.keyPair.pubKey,
+    };
+
+    const preKeyBundle = {
+      registrationId,
+      identityPubKey: identityKeyPair.pubKey,
+      signedPreKey: publicSignedPreKey,
+      oneTimePreKeys: [publicPreKey],
+    };
+    console.log("created preKeyBundle", preKeyBundle);
+    return preKeyBundle;
+  };
+
+  getID = async () => {
+    const registrationId = await this.getLocalRegistrationId();
+    const identityKeyPair = await this.getIdentityKeyPair();
+    const preKeys = await this.getOneTimePreKeys();
+    const signedPreKeys = await this.getAllSignedPreKeys();
+    if (
+      !registrationId ||
+      !identityKeyPair ||
+      !preKeys.length ||
+      !signedPreKeys.length
+    ) {
+      return null;
+    }
+
+    return {
+      registrationId,
+      identityKeyPair,
+      preKeys,
+      signedPreKeys,
+    };
   };
 }

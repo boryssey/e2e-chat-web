@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import "./globals.scss";
 import biotif from "./font";
 import { cookies } from "next/headers";
-import AuthProvider, { User } from "@/context/authContext";
+import AuthProvider, { User } from "@/context/AuthContext";
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -13,14 +13,14 @@ export const metadata: Metadata = {
 const getUserInfo = async () => {
   const cookieStore = cookies();
 
-  const res = await fetch(`${process.env.BACKEND_URL}/auth/me`, {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/me`, {
     headers: {
       Cookie: cookieStore.toString(),
     },
     credentials: "include",
   });
   if (res.ok) {
-    const data = await res.json();
+    const data = (await res.json()) as unknown;
     console.log("🚀 ~ getUserInfo ~ data:", data);
     return data as User;
   }

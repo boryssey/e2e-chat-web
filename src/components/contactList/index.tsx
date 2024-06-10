@@ -20,7 +20,9 @@ const ContactList = ({
           <div
             key={id}
             style={{ fontWeight: selectedContact?.id === id ? 800 : 400 }}
-            onClick={() => setSelectedContact({ id, name })}
+            onClick={() => {
+              setSelectedContact({ id, name });
+            }}
           >
             {name}
           </div>

@@ -1,5 +1,6 @@
 "use client";
-import StoreProvider from "@/context/storeContext";
+import DbContextProvider from "@/context/DbContext";
+import MessagingContextProvider from "@/context/MessagingContext";
 
 const UserLayout = ({
   children,
@@ -7,7 +8,11 @@ const UserLayout = ({
   children: React.ReactNode;
   chat: React.ReactNode;
 }) => {
-  return <StoreProvider>{children}</StoreProvider>;
+  return (
+    <DbContextProvider>
+      <MessagingContextProvider>{children}</MessagingContextProvider>
+    </DbContextProvider>
+  );
 };
 
 export default UserLayout;

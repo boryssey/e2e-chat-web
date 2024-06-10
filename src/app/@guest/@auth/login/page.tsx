@@ -5,12 +5,11 @@ import { useRouter } from "next/navigation";
 import { useForm, SubmitHandler } from "react-hook-form";
 import styles from "../auth.module.scss";
 import { useCallback, useState } from "react";
-import { revalidatePath } from "next/cache";
 
-type Inputs = {
+interface Inputs {
   username: string;
   password: string;
-};
+}
 
 export default function LoginPage() {
   console.log("login page called");
@@ -25,17 +24,20 @@ export default function LoginPage() {
   const onLogin: SubmitHandler<Inputs> = useCallback(
     async (data) => {
       console.log("onLogin, ;");
-      const res = await fetch(`${process.env.BACKEND_URL}/auth/login`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/login`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(data),
+          credentials: "include",
         },
-        body: JSON.stringify(data),
-        credentials: "include",
-      });
+      );
 
       if (!res.ok) {
-        const error = await res.json();
+        const error = (await res.json()) as { message: string };
         console.error(error, "error");
         setLoginError(error.message);
         return;
@@ -45,13 +47,13 @@ export default function LoginPage() {
       router.push("/");
       router.refresh();
     },
-    [router]
+    [router],
   );
 
   return (
     <>
       <h1>LOGIN</h1>
-      <form onSubmit={handleSubmit(onLogin)} id="loginForm">
+      <form onSubmit={void handleSubmit(onLogin)} id="loginForm">
         <Input
           {...register("username", {
             required: { value: true, message: "Username is required" },

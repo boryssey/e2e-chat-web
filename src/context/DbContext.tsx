@@ -4,20 +4,20 @@ import { createContext, useContext, useEffect, useState } from "react";
 import { encode as encodeBase64 } from "@stablelib/base64";
 import PasswordPrompt from "@/components/PasswordPrompt";
 
-interface IStoreContext {
+interface IDbContext {
   status: StatusType;
   appDB: AppDB;
   signalStore: SignalProtocolIndexDBStore;
 }
 
-const StoreContext = createContext<IStoreContext | null>(null);
+const DbContext = createContext<IDbContext | null>(null);
 
-export const useStoreContext = () => {
-  const signalContext = useContext(StoreContext);
-  if (!signalContext) {
-    throw new Error("useSignalContext must be used within a SignalProvider");
+export const useDbContext = () => {
+  const dbContext = useContext(DbContext);
+  if (!dbContext) {
+    throw new Error("useDbContext must be used within a SignalProvider");
   }
-  return signalContext;
+  return dbContext;
 };
 
 type StatusType = "unregistered" | "unauthenticated" | "authenticated";
@@ -29,8 +29,7 @@ const makeSecretKey = (key: string) => {
   return encodeBase64(newInt8Array);
 };
 
-const StoreProvider = ({ children }: { children: React.ReactNode }) => {
-  // appDb
+const DbContextProvider = ({ children }: { children: React.ReactNode }) => {
   const [appDB, setAppDB] = useState<AppDB | null>(null);
   const [signalStore, setSignalStore] =
     useState<SignalProtocolIndexDBStore | null>(null);
@@ -39,28 +38,28 @@ const StoreProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     const init = async () => {
       const isAppDBInitialized = await AppDB.appDBExists();
-      console.log("🚀 ~ init ~ isAppDBInitialized:", isAppDBInitialized);
       if (!isAppDBInitialized) {
         setStatus("unregistered");
         return;
       }
       setStatus("unauthenticated");
     };
-    init();
+    void init();
   }, []);
 
-  const onInitDBs = async (password: string) => {
-    console.log(password, "password");
-    const key = makeSecretKey(password); // use easy-web-crypto for creating a master password
-    console.log("🚀 ~ init ~ key:", key);
+  const onInitDBs = async (password: string, withCreateID?: boolean) => {
+    const key = makeSecretKey(password); // TODO: use easy-web-crypto for creating a master password
     const appDB = new AppDB(key);
     await appDB.open();
-    const localSignalStore = new SignalProtocolIndexDBStore(appDB); // use AppDB for signal store
+    const localSignalStore = new SignalProtocolIndexDBStore(appDB);
+    if (withCreateID) {
+      const newId = await localSignalStore.createID();
+      console.log("🚀 ~ onInitDBs ~ newId:", newId);
+    }
     setSignalStore(localSignalStore);
     setAppDB(appDB);
     setStatus("authenticated");
   };
-  console.log("re-render");
 
   if (!status) {
     return <div>Loading...</div>;
@@ -88,7 +87,7 @@ const StoreProvider = ({ children }: { children: React.ReactNode }) => {
 
   if (appDB && signalStore) {
     return (
-      <StoreContext.Provider
+      <DbContext.Provider
         value={{
           status: status,
           appDB: appDB,
@@ -96,11 +95,11 @@ const StoreProvider = ({ children }: { children: React.ReactNode }) => {
         }}
       >
         {children}
-      </StoreContext.Provider>
+      </DbContext.Provider>
     );
   }
 
   throw new Error("SignalProvider: unexpected state");
 };
 
-export default StoreProvider;
+export default DbContextProvider;

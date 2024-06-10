@@ -16,12 +16,12 @@ export const useAuthContext = () => {
   }
   return authContext;
 };
-export type User = {
+export interface User {
   id: number;
   username: string;
   created_at: Date | null;
   deleted_at: Date | null;
-};
+}
 
 const logout = async () =>
   fetch(`${process.env.BACKEND_URL}/auth/logout`, {

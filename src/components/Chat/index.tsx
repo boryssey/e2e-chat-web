@@ -3,29 +3,29 @@ import { useLiveQuery } from "dexie-react-hooks";
 import styles from "./chat.module.scss";
 import { FormEvent, useCallback, useState } from "react";
 
-type ChatProps = {
+interface ChatProps {
   appDB: AppDB;
   contact: Contact;
   onSendMessage: (
     messageText: string,
-    recipientUsername: string
+    recipientUsername: string,
   ) => void | Promise<void>;
-};
+}
 const Chat = ({ appDB, contact, onSendMessage }: ChatProps) => {
   const [messageText, setMessageText] = useState("");
   const messages = useLiveQuery(
     () =>
       appDB.messages.where("contactId").equals(contact.id!).sortBy("timestamp"),
-    [contact.id]
+    [contact.id],
   );
 
   const handleSendMessage = useCallback(
     (e: FormEvent<HTMLFormElement>) => {
       e.preventDefault();
-      onSendMessage(messageText, contact.name);
+      void onSendMessage(messageText, contact.name);
       setMessageText("");
     },
-    [onSendMessage, messageText, contact.name]
+    [onSendMessage, messageText, contact.name],
   );
   return (
     <div className={styles.container}>
@@ -45,11 +45,15 @@ const Chat = ({ appDB, contact, onSendMessage }: ChatProps) => {
       </div>
       <form
         className={styles.inputContainer}
-        onSubmit={(e) => handleSendMessage(e)}
+        onSubmit={(e) => {
+          handleSendMessage(e);
+        }}
       >
         <input
           value={messageText}
-          onChange={(e) => setMessageText(e.target.value)}
+          onChange={(e) => {
+            setMessageText(e.target.value);
+          }}
         />
         <button type="submit">Send</button>
       </form>

@@ -6,11 +6,11 @@ import styles from "../auth.module.scss";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-type Inputs = {
+interface Inputs {
   username: string;
   password: string;
   confirmPassword: string;
-};
+}
 
 export default function LoginPage() {
   const [registerError, setRegisterError] = useState<string | null>(null);
@@ -24,16 +24,19 @@ export default function LoginPage() {
   } = useForm<Inputs>();
 
   const onRegister: SubmitHandler<Inputs> = async (data) => {
-    const res = await fetch(`${process.env.BACKEND_URL}/auth/register`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/register`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+        credentials: "include",
       },
-      body: JSON.stringify(data),
-      credentials: "include",
-    });
+    );
     if (!res.ok) {
-      const error = await res.json();
+      const error = (await res.json()) as { message: string };
       setRegisterError(error.message);
       return;
     }
@@ -44,7 +47,7 @@ export default function LoginPage() {
   return (
     <>
       <h1>CREATE ACCOUNT</h1>
-      <form onSubmit={handleSubmit(onRegister)} id="loginForm">
+      <form onSubmit={void handleSubmit(onRegister)} id="loginForm">
         <Input
           {...register("username", {
             required: { value: true, message: "Username is required" },

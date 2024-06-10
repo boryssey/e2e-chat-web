@@ -10,7 +10,7 @@ type InpurRef = HTMLInputElement;
 
 const Input = forwardRef<InpurRef, InputProps>(function Input(
   { color = "primary", ...props },
-  ref
+  ref,
 ) {
   return <input ref={ref} className={styles[color]} {...props} />;
 });
