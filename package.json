@@ -9,13 +9,11 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@hookform/error-message": "^2.0.1",
     "@privacyresearch/libsignal-protocol-typescript": "^0.0.16",
     "@pvermeer/dexie-encrypted-addon": "^3.0.0",
     "@stablelib/base64": "^1.0.1",
     "dexie": "^3.2.7",
     "dexie-react-hooks": "^1.1.7",
-    "idb-keyval": "^6.2.1",
     "next": "14.3.0-canary.85",
     "react": "19.0.0-rc-935180c7e0-20240524",
     "react-dom": "19.0.0-rc-935180c7e0-20240524",
@@ -25,12 +23,17 @@
     "socket.io-client": "^4.7.5"
   },
   "devDependencies": {
+    "@eslint/js": "^9.4.0",
+    "@types/eslint__js": "^8.42.3",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "eslint": "^8",
-    "eslint-config-next": "14.1.4",
+    "eslint-config-next": "15.0.0-canary.23",
     "eslint-config-prettier": "^9.1.0",
-    "typescript": "^5"
+    "eslint-plugin-prettier": "^5.1.3",
+    "prettier-eslint": "^16.3.0",
+    "typescript": "^5.4.5",
+    "typescript-eslint": "^7.12.0"
   }
 }
