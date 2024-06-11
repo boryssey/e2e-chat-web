@@ -13,14 +13,18 @@ import {
 } from "@/context/MessagingContext";
 import { useDbContext } from "@/context/DbContext";
 import { socket } from "@/utils/socket";
+import { Contact } from "@/utils/db";
+import ContactList from "@/components/ContactList";
+import Chat from "@/components/Chat";
 
 const UserPage = () => {
   const router = useRouter();
-  const [recipientName, setRecipientName] = useState<string>("boryss3"); // tbd
-  const { logout } = useAuthContext();
-  const { signalStore } = useDbContext();
 
-  const { socketState } = useMessagingContext();
+  const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
+  const { logout } = useAuthContext();
+  const { signalStore, appDB, contacts } = useDbContext();
+
+  const { socketState, sendMessage } = useMessagingContext();
 
   const logoutHandler = useCallback(async () => {
     const res = await logout();
@@ -41,33 +45,48 @@ const UserPage = () => {
   return (
     <>
       <h1>UserPage</h1>
-      <button onClick={() => void logoutHandler()}>Logout</button>
+      <button onClick={() => logoutHandler()}>Logout</button>
       <button onClick={() => getRemoteKeyBundle("boryss")}>testRemote</button>
       <button onClick={() => testSaveKeyBundle()}>testLocal</button>
       <p>Status: {socketState}</p>
       <div>
-        <input
-          type="text"
-          value={recipientName}
-          onChange={(e) => {
-            setRecipientName(e.target.value);
+        <input type="text" id="recipientNameInput" />
+        <button
+          onClick={() => {
+            const inputElement = document.getElementById(
+              "recipientNameInput",
+            ) as HTMLInputElement | null;
+            if (!inputElement) {
+              return;
+            }
+            const recipientName = inputElement.value;
+            appDB
+              .addContact(recipientName)
+              .then(() => {
+                inputElement.value = "";
+              })
+              .catch((error: unknown) => {
+                console.error(error);
+              });
           }}
-        />
+        >
+          Add contact
+        </button>
       </div>
-      {/* {isConnected && appDB && (
+      {contacts && (
         <ContactList
           selectedContact={selectedContact}
           setSelectedContact={setSelectedContact}
-          appDB={appDB}
+          contacts={contacts}
         />
       )}
-      {isConnected && appDB && selectedContact && (
+      {selectedContact && (
         <Chat
           appDB={appDB}
-          onSendMessage={onSendMessage}
+          onSendMessage={sendMessage}
           contact={selectedContact}
         />
-      )} */}
+      )}
     </>
   );
 };

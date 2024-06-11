@@ -1,19 +1,23 @@
 import { SignalProtocolIndexDBStore } from "@/utils/EncryptedSignalStore";
-import AppDB from "@/utils/db";
+import AppDB, { Contact, Message } from "@/utils/db";
 import { createContext, useContext, useEffect, useState } from "react";
 import { encode as encodeBase64 } from "@stablelib/base64";
 import PasswordPrompt from "@/components/PasswordPrompt";
+import { useLiveQuery } from "dexie-react-hooks";
+import { socket } from "@/utils/socket";
 
 interface IDbContext {
   status: StatusType;
   appDB: AppDB;
   signalStore: SignalProtocolIndexDBStore;
+  contacts: (Contact & { lastMessage: Message | undefined })[] | undefined;
 }
 
 const DbContext = createContext<IDbContext | null>(null);
 
 export const useDbContext = () => {
   const dbContext = useContext(DbContext);
+
   if (!dbContext) {
     throw new Error("useDbContext must be used within a SignalProvider");
   }
@@ -29,11 +33,30 @@ const makeSecretKey = (key: string) => {
   return encodeBase64(newInt8Array);
 };
 
+const contactsWithLastMessage = async (appDb: AppDB) => {
+  const contacts = await appDb.contacts.toArray();
+  return Promise.all(
+    contacts.map(async (contact) => {
+      const lastMessage = await appDb.messages
+        .where({ contactId: contact.id })
+        .last();
+      return {
+        ...contact,
+        lastMessage,
+      };
+    }),
+  );
+};
+
 const DbContextProvider = ({ children }: { children: React.ReactNode }) => {
   const [appDB, setAppDB] = useState<AppDB | null>(null);
   const [signalStore, setSignalStore] =
     useState<SignalProtocolIndexDBStore | null>(null);
   const [status, setStatus] = useState<StatusType | null>(null);
+  const contacts = useLiveQuery(
+    () => (appDB ? contactsWithLastMessage(appDB) : []),
+    [status],
+  );
 
   useEffect(() => {
     const init = async () => {
@@ -66,21 +89,15 @@ const DbContextProvider = ({ children }: { children: React.ReactNode }) => {
     return <div>Loading...</div>;
   }
 
-  if (status === "unregistered") {
+  if (status === "unregistered" || status === "unauthenticated") {
     return (
       <PasswordPrompt
         promptLabel={
-          "Please enter a password that will be used to encrypt your local database"
+          status === "unauthenticated"
+            ? "Please enter your password to decrypt the database"
+            : "Please enter a password that will be used to encrypt your local database"
         }
-        withConfirmation
-        onSubmit={onInitDBs}
-      />
-    );
-  }
-  if (status === "unauthenticated") {
-    return (
-      <PasswordPrompt
-        promptLabel={"Please enter your password to decrypt the database"}
+        withConfirmation={status === "unregistered"}
         onSubmit={onInitDBs}
       />
     );
@@ -93,6 +110,7 @@ const DbContextProvider = ({ children }: { children: React.ReactNode }) => {
           status: status,
           appDB: appDB,
           signalStore: signalStore,
+          contacts,
         }}
       >
         {children}

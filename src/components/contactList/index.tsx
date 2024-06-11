@@ -1,21 +1,17 @@
-import AppDB, { Contact } from "@/utils/db";
-import { useLiveQuery } from "dexie-react-hooks";
+import { Contact, Message } from "@/utils/db";
 
 const ContactList = ({
-  appDB,
   selectedContact,
+  contacts,
   setSelectedContact,
 }: {
-  appDB: AppDB;
+  contacts: (Contact & { lastMessage: Message | undefined })[];
   selectedContact: Contact | null;
   setSelectedContact: (contact: Contact) => void;
 }) => {
-  const contacts = useLiveQuery(() => appDB.contacts.toArray());
-  console.log("🚀 ~ ContactList ~ contacts:", contacts);
-
   return (
     <div>
-      {contacts?.map(({ id, name }) => {
+      {contacts.map(({ id, name }) => {
         return (
           <div
             key={id}
