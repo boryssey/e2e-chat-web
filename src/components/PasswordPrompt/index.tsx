@@ -39,7 +39,8 @@ const PasswordPrompt = ({
     console.log(event, "event");
 
     event?.preventDefault();
-    void onSubmit(data.password, withConfirmation);
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    onSubmit(data.password, withConfirmation);
   };
 
   return (

@@ -36,7 +36,7 @@ const UserPage = () => {
   }, [logout, router]);
   const testSaveKeyBundle = useCallback(async () => {
     const keyBundle = await signalStore.createID();
-    socket.emit("keyBundle:save", keyBundle);
+    await socket.emitWithAck("keyBundle:save", keyBundle);
   }, [signalStore]);
   return (
     <>

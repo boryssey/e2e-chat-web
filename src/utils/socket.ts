@@ -38,23 +38,29 @@ export interface ServerToClientEvents {
 }
 
 export interface ClientToServerEvents {
-  "message:send": (data: {
-    to: string;
-    message: MessageType;
-    timestamp: number;
-  }) => void | Promise<void>;
+  "message:send": (
+    data: {
+      to: string;
+      message: MessageType;
+      timestamp: number;
+    },
+    callback: () => void | Promise<void>,
+  ) => void | Promise<void>;
   "message:ack": (
     data: {
       lastReceivedMessageId: number;
     },
-    callback: (data: { success: boolean }) => void,
+    callback: () => void | Promise<void>,
   ) => void | Promise<void>;
-  "keyBundle:save": (data: {
-    registrationId: number;
-    identityPubKey: ArrayBuffer;
-    signedPreKey: SignedPublicPreKeyType;
-    oneTimePreKeys: PreKeyType[];
-  }) => void | Promise<void>;
+  "keyBundle:save": (
+    data: {
+      registrationId: number;
+      identityPubKey: ArrayBuffer;
+      signedPreKey: SignedPublicPreKeyType;
+      oneTimePreKeys: PreKeyType[];
+    },
+    callback: () => void | Promise<void>,
+  ) => void | Promise<void>;
 }
 
 export const socket: Socket<ServerToClientEvents, ClientToServerEvents> = io(

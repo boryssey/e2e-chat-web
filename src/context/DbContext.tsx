@@ -47,14 +47,15 @@ const DbContextProvider = ({ children }: { children: React.ReactNode }) => {
     void init();
   }, []);
 
-  const onInitDBs = async (password: string, withCreateID?: boolean) => {
+  const onInitDBs = async (password: string) => {
     const key = makeSecretKey(password); // TODO: use easy-web-crypto for creating a master password
     const appDB = new AppDB(key);
     await appDB.open();
     const localSignalStore = new SignalProtocolIndexDBStore(appDB);
-    if (withCreateID) {
+    const existingID = await localSignalStore.getID();
+    if (!existingID) {
       const newId = await localSignalStore.createID();
-      console.log("🚀 ~ onInitDBs ~ newId:", newId);
+      void socket.emitWithAck("keyBundle:save", newId);
     }
     setSignalStore(localSignalStore);
     setAppDB(appDB);

@@ -161,7 +161,7 @@ const MessagingContextProvider = ({
           message: encryptedMessage,
           timestamp: Date.now(),
         };
-        socket.emit("message:send", messageToSend);
+        await socket.emitWithAck("message:send", messageToSend);
 
         await appDB.messages.add({
           contactId: contact.id!,
