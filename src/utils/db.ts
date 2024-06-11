@@ -23,17 +23,22 @@ export interface Contact {
   name: string;
 }
 
-type StoreValue =
+interface ArrayBufferSerialized {
+  data: number[];
+  type: "Buffer";
+}
+
+export type StoreValueSerialized =
   | string
   | number
-  | KeyPairType
-  | PreKeyType
-  | ArrayBuffer
+  | KeyPairType<ArrayBufferSerialized>
+  | PreKeyType<ArrayBufferSerialized>
+  | ArrayBufferSerialized
   | undefined;
 
 export interface SignalStoreItem {
   key: string;
-  value: StoreValue;
+  value: StoreValueSerialized;
 }
 
 export default class AppDB extends Dexie {

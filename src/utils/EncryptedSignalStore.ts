@@ -8,7 +8,7 @@ import {
   SignedPublicPreKeyType,
   StorageType,
 } from "@privacyresearch/libsignal-protocol-typescript";
-import AppDB from "./db";
+import AppDB, { type StoreValueSerialized } from "./db";
 
 /*
     Examples are: 
@@ -70,6 +70,50 @@ type StoreValue =
   | ArrayBuffer
   | undefined;
 
+const serializeStoreValue = (value: StoreValue): StoreValueSerialized => {
+  if (typeof value === "string" || typeof value === "number") {
+    return value;
+  }
+  if (isKeyPairType(value)) {
+    return {
+      pubKey: Buffer.from(value.pubKey).toJSON(),
+      privKey: Buffer.from(value.privKey).toJSON(),
+    };
+  }
+  if (value instanceof ArrayBuffer) {
+    return Buffer.from(value).toJSON();
+  }
+  if (value && "keyId" in value && "publicKey" in value) {
+    return {
+      keyId: value.keyId,
+      publicKey: Buffer.from(value.publicKey).toJSON(),
+    };
+  }
+  return undefined;
+};
+
+const deserializeStoreValue = (value: StoreValueSerialized): StoreValue => {
+  if (typeof value === "string" || typeof value === "number") {
+    return value;
+  }
+  if (value && "pubKey" in value && "privKey" in value) {
+    return {
+      pubKey: Buffer.from(value.pubKey.data).buffer,
+      privKey: Buffer.from(value.privKey.data).buffer,
+    };
+  }
+  if (value && "keyId" in value && "publicKey" in value) {
+    return {
+      keyId: value.keyId,
+      publicKey: Buffer.from(value.publicKey.data).buffer,
+    };
+  }
+  if (value?.data) {
+    return Buffer.from(value.data).buffer;
+  }
+  return undefined;
+};
+
 export class SignalProtocolIndexDBStore implements StorageType {
   private _store;
   static dbName = "signal-store";
@@ -85,12 +129,17 @@ export class SignalProtocolIndexDBStore implements StorageType {
   };
 
   private async get(key: string) {
-    return (await this._store.signalStoreItems.get(key))?.value;
+    return deserializeStoreValue(
+      (await this._store.signalStoreItems.get(key))?.value,
+    );
     // return get(key, this._store);
   }
 
   private async set(key: string, value: StoreValue) {
-    await this._store.signalStoreItems.put({ key, value });
+    await this._store.signalStoreItems.put({
+      key,
+      value: serializeStoreValue(value),
+    });
     // return set(key, value, this._store);
   }
 
@@ -100,6 +149,7 @@ export class SignalProtocolIndexDBStore implements StorageType {
 
   async getIdentityKeyPair(): Promise<KeyPairType | undefined> {
     const keyPair = await this.get("identityKey");
+
     if (isKeyPairType(keyPair)) {
       return keyPair;
     }
@@ -147,14 +197,17 @@ export class SignalProtocolIndexDBStore implements StorageType {
 
     if (!trusted) {
       // no previous conversation with this identity
+
       return true;
     }
 
     // check if the identity key is the same
-    return Promise.resolve(
+    const result = Promise.resolve(
       arrayBufferToString(identityKey) ===
         arrayBufferToString(trusted as ArrayBuffer),
     );
+
+    return result;
 
     // return true;
   }
@@ -293,7 +346,7 @@ export class SignalProtocolIndexDBStore implements StorageType {
       signedPreKey: publicSignedPreKey,
       oneTimePreKeys: [publicPreKey],
     };
-    console.log("created preKeyBundle", preKeyBundle);
+
     return preKeyBundle;
   };
 
@@ -302,12 +355,7 @@ export class SignalProtocolIndexDBStore implements StorageType {
     const identityKeyPair = await this.getIdentityKeyPair();
     const preKeys = await this.getOneTimePreKeys();
     const signedPreKeys = await this.getAllSignedPreKeys();
-    if (
-      !registrationId ||
-      !identityKeyPair ||
-      !preKeys.length ||
-      !signedPreKeys.length
-    ) {
+    if (!registrationId || !identityKeyPair || !signedPreKeys.length) {
       return null;
     }
 
