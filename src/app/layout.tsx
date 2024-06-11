@@ -21,7 +21,6 @@ const getUserInfo = async () => {
   });
   if (res.ok) {
     const data = (await res.json()) as unknown;
-    console.log("🚀 ~ getUserInfo ~ data:", data);
     return data as User;
   }
   console.error(res.statusText);

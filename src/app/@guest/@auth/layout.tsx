@@ -23,8 +23,6 @@ export default async function AuthLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const cookieStore = cookies();
-  console.log("🚀 ~ cookieStore:", cookieStore);
   const user = await getUserInfo();
 
   if (user) {
