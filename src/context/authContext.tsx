@@ -24,7 +24,7 @@ export interface User {
 }
 
 const logout = async () =>
-  fetch(`${process.env.BACKEND_URL}/auth/logout`, {
+  fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/logout`, {
     method: "GET",
     credentials: "include",
   });

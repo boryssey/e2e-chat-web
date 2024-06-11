@@ -22,8 +22,8 @@ export default function LoginPage() {
   } = useForm<Inputs>();
 
   const onLogin: SubmitHandler<Inputs> = useCallback(
-    async (data) => {
-      console.log("onLogin, ;");
+    async (data, event) => {
+      event?.preventDefault();
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/login`,
         {
@@ -53,7 +53,7 @@ export default function LoginPage() {
   return (
     <>
       <h1>LOGIN</h1>
-      <form onSubmit={void handleSubmit(onLogin)} id="loginForm">
+      <form onSubmit={handleSubmit(onLogin)} id="loginForm">
         <Input
           {...register("username", {
             required: { value: true, message: "Username is required" },

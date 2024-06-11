@@ -47,7 +47,7 @@ export default function LoginPage() {
   return (
     <>
       <h1>CREATE ACCOUNT</h1>
-      <form onSubmit={void handleSubmit(onRegister)} id="loginForm">
+      <form onSubmit={handleSubmit(onRegister)} id="loginForm">
         <Input
           {...register("username", {
             required: { value: true, message: "Username is required" },
