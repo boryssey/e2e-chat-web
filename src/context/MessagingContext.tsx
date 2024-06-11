@@ -14,7 +14,7 @@ import {
 } from "@/utils/socket";
 import {
   MessageType,
-  // SessionBuilder,
+  SessionBuilder,
   SessionCipher,
   SignalProtocolAddress,
 } from "@privacyresearch/libsignal-protocol-typescript";
@@ -38,12 +38,12 @@ interface KeyBundleResponse {
     signed_pre_key_pub_key: SerializedBuffer;
     registration_id: number;
   };
-  one_time_keys: {
+  one_time_keys?: {
     id: number;
     key_bundle_id: number;
     key_id: number;
     pub_key: SerializedBuffer;
-  } | null;
+  };
 }
 
 export const getRemoteKeyBundle = async (username: string) => {
@@ -56,7 +56,7 @@ export const getRemoteKeyBundle = async (username: string) => {
   );
 
   const data = (await response.json()) as KeyBundleResponse;
-  console.log("🚀 ~ getRemoteKeyBundle ~ data:", data);
+
   if (!response.ok) {
     console.error(response.status, response.statusText);
     throw new Error("Failed to fetch remote key bundle");
@@ -64,13 +64,13 @@ export const getRemoteKeyBundle = async (username: string) => {
 
   const transformedBundle = {
     registrationId: data.key_bundles.registration_id,
-    preKey: data.one_time_keys
-      ? {
-          keyId: data.one_time_keys.key_id,
-          publicKey: Uint8Array.from(data.one_time_keys.pub_key.data)
-            .buffer as ArrayBuffer,
-        }
-      : null,
+    ...(data.one_time_keys && {
+      preKey: {
+        keyId: data.one_time_keys.key_id,
+        publicKey: Uint8Array.from(data.one_time_keys.pub_key.data)
+          .buffer as ArrayBuffer,
+      },
+    }),
     signedPreKey: {
       keyId: data.key_bundles.signed_pre_key_id,
       publicKey: Uint8Array.from(data.key_bundles.signed_pre_key_pub_key.data)
@@ -117,14 +117,8 @@ const MessagingContextProvider = ({
   const [socketState, setSocketState] =
     useState<SocketStateType>("disconnected");
 
-  const handleConnect = async () => {
+  const handleConnect = () => {
     setSocketState("connected");
-    const IdExists = await signalStore.getID();
-    if (!IdExists) {
-      console.log("🚀 ~ handleConnect ~ IdExists:", IdExists);
-      const keyBundle = await signalStore.createID();
-      socket.emit("keyBundle:save", keyBundle);
-    }
   };
   const handleDisconnect = (
     reason: string,
@@ -149,13 +143,14 @@ const MessagingContextProvider = ({
         }
         const sessionCipher = new SessionCipher(signalStore, recipientAddress);
         const hasOpenSession = await sessionCipher.hasOpenSession();
+
         if (!hasOpenSession) {
-          // const sessionBuilder = new SessionBuilder(
-          //   signalStore,
-          //   recipientAddress,
-          // );
-          // const recipientBundle = await getRemoteKeyBundle(recipientUsername);
-          // await sessionBuilder.processPreKey(recipientBundle);
+          const sessionBuilder = new SessionBuilder(
+            signalStore,
+            recipientAddress,
+          );
+          const recipientBundle = await getRemoteKeyBundle(recipientUsername);
+          await sessionBuilder.processPreKey(recipientBundle);
         }
         const encryptedMessage = await sessionCipher.encrypt(
           stringToArrayBuffer(messageText).buffer,
@@ -212,7 +207,7 @@ const MessagingContextProvider = ({
       }
 
       console.log(
-        `decryptedMessage, type: ${message.type}, Message${decryptedMessage}`,
+        `decryptedMessage, type: ${message.type}, Message: ${decryptedMessage}`,
       );
       if (!decryptedMessage) {
         console.warn("Received message of not supported type");
@@ -272,10 +267,6 @@ const MessagingContextProvider = ({
   useEffect(() => {
     socket.on("connect", handleConnect);
     socket.on("disconnect", handleDisconnect);
-    function onHelloWorld(data: unknown) {
-      console.log(data, "hello data");
-    }
-    socket.on("hello", onHelloWorld);
     if (!socket.connected) {
       socket.connect();
     }
@@ -290,8 +281,6 @@ const MessagingContextProvider = ({
     socketState,
     sendMessage,
   };
-
-  console.log(state, "returnState");
 
   return (
     <MessagingContext.Provider value={state}>
