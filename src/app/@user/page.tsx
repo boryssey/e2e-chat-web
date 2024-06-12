@@ -16,6 +16,7 @@ import { socket } from "@/utils/socket";
 import { Contact } from "@/utils/db";
 import ContactList from "@/components/ContactList";
 import Chat from "@/components/Chat";
+import styles from "./user.module.scss";
 
 const UserPage = () => {
   const router = useRouter();
@@ -38,10 +39,12 @@ const UserPage = () => {
 
     console.log("logout success");
   }, [logout, router]);
+
   const testSaveKeyBundle = useCallback(async () => {
     const keyBundle = await signalStore.createID();
     await socket.emitWithAck("keyBundle:save", keyBundle);
   }, [signalStore]);
+
   return (
     <>
       <h1>UserPage</h1>
@@ -73,20 +76,23 @@ const UserPage = () => {
           Add contact
         </button>
       </div>
-      {contacts && (
-        <ContactList
-          selectedContact={selectedContact}
-          setSelectedContact={setSelectedContact}
-          contacts={contacts}
-        />
-      )}
-      {selectedContact && (
-        <Chat
-          appDB={appDB}
-          onSendMessage={sendMessage}
-          contact={selectedContact}
-        />
-      )}
+      <div className={styles.container}>
+        {contacts && (
+          <>
+            <ContactList
+              selectedContact={selectedContact}
+              setSelectedContact={setSelectedContact}
+              contacts={contacts}
+            />
+
+            <Chat
+              appDB={appDB}
+              onSendMessage={sendMessage}
+              contact={selectedContact}
+            />
+          </>
+        )}
+      </div>
     </>
   );
 };

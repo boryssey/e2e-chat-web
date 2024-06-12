@@ -1,4 +1,5 @@
 import { Contact, Message } from "@/utils/db";
+import styles from "./contactList.module.scss";
 
 const ContactList = ({
   selectedContact,
@@ -10,17 +11,23 @@ const ContactList = ({
   setSelectedContact: (contact: Contact) => void;
 }) => {
   return (
-    <div>
-      {contacts.map(({ id, name }) => {
+    <div className={styles.container}>
+      {contacts.map(({ id, name, lastMessage }) => {
         return (
           <div
             key={id}
+            className={
+              selectedContact?.id === id
+                ? styles.activeItem
+                : styles.contactItem
+            }
             style={{ fontWeight: selectedContact?.id === id ? 800 : 400 }}
             onClick={() => {
               setSelectedContact({ id, name });
             }}
           >
-            {name}
+            <p>{name}</p>
+            <p>{lastMessage?.message}</p>
           </div>
         );
       })}

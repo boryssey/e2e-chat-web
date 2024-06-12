@@ -5,6 +5,11 @@
     min-height: 200px;
 }
 
+.emptyContainer {
+    display: grid;
+    place-content: center;
+    height: 100%;
+}
 
 .messageContainer { 
     display: flex;

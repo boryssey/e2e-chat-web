@@ -5,7 +5,7 @@ import { FormEvent, useCallback, useState } from "react";
 
 interface ChatProps {
   appDB: AppDB;
-  contact: Contact;
+  contact: Contact | null;
   onSendMessage: (
     messageText: string,
     recipientUsername: string,
@@ -15,18 +15,31 @@ const Chat = ({ appDB, contact, onSendMessage }: ChatProps) => {
   const [messageText, setMessageText] = useState("");
   const messages = useLiveQuery(
     () =>
-      appDB.messages.where("contactId").equals(contact.id!).sortBy("timestamp"),
-    [contact.id],
+      contact
+        ? appDB.messages
+            .where("contactId")
+            .equals(contact.id!)
+            .sortBy("timestamp")
+        : [],
+    [contact?.id],
   );
 
   const handleSendMessage = useCallback(
     (e: FormEvent<HTMLFormElement>) => {
       e.preventDefault();
+      if (!contact || !messageText) {
+        return;
+      }
       void onSendMessage(messageText, contact.name);
       setMessageText("");
     },
-    [onSendMessage, messageText, contact.name],
+    [contact, messageText, onSendMessage],
   );
+
+  if (!contact) {
+    return <div className={styles.emptyContainer}>No contact selected</div>;
+  }
+
   return (
     <div className={styles.container}>
       <div className={styles.messageContainer}>

@@ -1,0 +1,33 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    width: 200px;
+    border-right: 1px solid black;
+}
+
+.contactItem {
+    padding: 5px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    border-bottom: 1px solid #ccc;
+
+    p:first-of-type {
+        font-size: 16px;
+    }
+    p:last-of-type {
+        font-size: 12px;
+
+        &:empty {
+            content: 'No message yet';
+            font-style: italic;
+        }
+    }
+}
+
+.activeItem {
+    composes: activeItem;
+    background-color: #f0f0f0;
+    font-weight: 800;
+
+}
