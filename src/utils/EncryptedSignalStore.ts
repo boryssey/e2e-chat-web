@@ -122,11 +122,11 @@ export class SignalProtocolIndexDBStore implements StorageType {
     this._store = appDB;
   }
 
-  public static storeExists = async () => {
+  public static async storeExists() {
     return (await window.indexedDB.databases())
       .map((db) => db.name)
       .includes(SignalProtocolIndexDBStore.dbName);
-  };
+  }
 
   private async get(key: string) {
     return deserializeStoreValue(
@@ -156,17 +156,17 @@ export class SignalProtocolIndexDBStore implements StorageType {
     return undefined;
   }
 
-  getLocalRegistrationId = async () => {
+  async getLocalRegistrationId() {
     const localRegistrationId = await this.get("registrationId");
     if (localRegistrationId && !isNaN(+localRegistrationId)) {
       return Number(localRegistrationId);
     }
     return undefined;
-  };
+  }
 
-  saveLocalRegistrationId = async (id: string) => {
+  async saveLocalRegistrationId(id: string) {
     return this.set("registrationId", id);
-  };
+  }
 
   async saveIdentityKeyPair(keyPair: KeyPairType) {
     return this.set("identityKey", keyPair);
@@ -258,21 +258,19 @@ export class SignalProtocolIndexDBStore implements StorageType {
   ) => {
     return this.del("preKey:" + keyId);
   };
-  storeSession: (encodedAddress: string, record: string) => Promise<void> =
-    async (encodedAddress: string, record: string) => {
-      return this.set("session:" + encodedAddress, record);
-    };
-  loadSession: (encodedAddress: string) => Promise<string | undefined> = async (
-    encodedAddress: string,
-  ) => {
+  async storeSession(encodedAddress: string, record: string) {
+    return this.set("session:" + encodedAddress, record);
+  }
+
+  async loadSession(encodedAddress: string) {
     const session = await this.get("session:" + encodedAddress);
     if (typeof session === "string") {
       return session;
     }
     return undefined;
-  };
+  }
 
-  getAllSignedPreKeys = async () => {
+  async getAllSignedPreKeys() {
     const allKeys = await this._store.signalStoreItems.toCollection().keys();
     const signePreKeys = Promise.all(
       allKeys
@@ -282,11 +280,9 @@ export class SignalProtocolIndexDBStore implements StorageType {
         ),
     );
     return signePreKeys;
-  };
+  }
 
-  loadSignedPreKey: (
-    keyId: string | number,
-  ) => Promise<KeyPairType | undefined> = async (keyId: string | number) => {
+  async loadSignedPreKey(keyId: string | number) {
     const savedPreKey = await this.get("signedPreKey:" + keyId);
 
     if (isKeyPairType(savedPreKey)) {
@@ -298,21 +294,16 @@ export class SignalProtocolIndexDBStore implements StorageType {
       return savedPreKey;
     }
     throw new Error("preKey is not of correct type");
-  };
+  }
 
-  storeSignedPreKey: (
-    keyId: string | number,
-    keyPair: KeyPairType,
-  ) => Promise<void> = async (keyId: string | number, keyPair) => {
+  async storeSignedPreKey(keyId: string | number, keyPair: KeyPairType) {
     return this.set("signedPreKey:" + keyId, keyPair);
-  };
-  removeSignedPreKey: (keyId: string | number) => Promise<void> = async (
-    keyId: string | number,
-  ) => {
+  }
+  async removeSignedPreKey(keyId: string | number) {
     return this.del("signedPreKey:" + keyId);
-  };
+  }
 
-  createID = async () => {
+  async createID() {
     const registrationId = KeyHelper.generateRegistrationId();
     await this.saveLocalRegistrationId(registrationId.toString());
 
@@ -348,9 +339,9 @@ export class SignalProtocolIndexDBStore implements StorageType {
     };
 
     return preKeyBundle;
-  };
+  }
 
-  getID = async () => {
+  async getID() {
     const registrationId = await this.getLocalRegistrationId();
     const identityKeyPair = await this.getIdentityKeyPair();
     const preKeys = await this.getOneTimePreKeys();
@@ -365,5 +356,5 @@ export class SignalProtocolIndexDBStore implements StorageType {
       preKeys,
       signedPreKeys,
     };
-  };
+  }
 }
