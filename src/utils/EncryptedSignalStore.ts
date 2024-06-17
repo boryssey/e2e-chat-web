@@ -1,6 +1,7 @@
 //authContext
 import {
   Direction,
+  FingerprintGenerator,
   KeyHelper,
   KeyPairType,
   PreKeyType,
@@ -9,6 +10,7 @@ import {
   StorageType,
 } from "@privacyresearch/libsignal-protocol-typescript";
 import AppDB, { type StoreValueSerialized } from "./db";
+import { SessionRecord } from "@privacyresearch/libsignal-protocol-typescript/lib/session-record";
 
 /*
     Examples are: 
@@ -356,5 +358,35 @@ export class SignalProtocolIndexDBStore implements StorageType {
       preKeys,
       signedPreKeys,
     };
+  }
+
+  async createFingerprintFor(localUsername: string, remoteUsername: string) {
+    const currentUserIdentifier = await this.getIdentityKeyPair();
+    const recipientAddress = new SignalProtocolAddress(remoteUsername, 1);
+    const sessionWithRecipient = await this.loadSession(
+      recipientAddress.toString(),
+    );
+    if (!currentUserIdentifier) {
+      console.warn("no current user identifier");
+      return null;
+    }
+    if (!sessionWithRecipient) {
+      console.warn("no session with recipient");
+      return null;
+    }
+    const sessionRecord = SessionRecord.deserialize(sessionWithRecipient);
+    const activeSession = sessionRecord.getOpenSession();
+    if (!activeSession) {
+      console.warn("no active session for user:", remoteUsername);
+      return null;
+    }
+    const fingerprintGenerator = new FingerprintGenerator(1024);
+    const fingerPrint = await fingerprintGenerator.createFor(
+      localUsername,
+      currentUserIdentifier.pubKey,
+      remoteUsername,
+      activeSession.indexInfo.remoteIdentityKey,
+    );
+    return fingerPrint;
   }
 }
