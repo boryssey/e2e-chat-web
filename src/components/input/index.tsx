@@ -1,18 +1,18 @@
-import { DetailedHTMLProps, InputHTMLAttributes, forwardRef } from "react";
-import styles from "./input.module.css";
+import { DetailedHTMLProps, InputHTMLAttributes, forwardRef } from 'react'
+import styles from './input.module.scss'
 
 type InputProps = {
-  type: "text" | "password";
-  color?: "secondary" | "primary";
-} & DetailedHTMLProps<InputHTMLAttributes<HTMLInputElement>, HTMLInputElement>;
+  type: 'text' | 'password'
+  color?: 'secondary' | 'primary'
+} & DetailedHTMLProps<InputHTMLAttributes<HTMLInputElement>, HTMLInputElement>
 
-type InpurRef = HTMLInputElement;
+type InpurRef = HTMLInputElement
 
 const Input = forwardRef<InpurRef, InputProps>(function Input(
-  { color = "primary", ...props },
-  ref,
+  { color = 'primary', ...props },
+  ref
 ) {
-  return <input ref={ref} className={styles[color]} {...props} />;
-});
+  return <input ref={ref} className={styles[color]} {...props} />
+})
 
-export default Input;
+export default Input

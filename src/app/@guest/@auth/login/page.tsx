@@ -1,70 +1,69 @@
-"use client";
-import Button from "@/components/Button";
-import Input from "@/components/Input";
-import { useRouter } from "next/navigation";
-import { useForm, SubmitHandler } from "react-hook-form";
-import styles from "../auth.module.scss";
-import { useCallback, useState } from "react";
+'use client'
+import Button from '@/components/Button'
+import Input from '@/components/Input'
+import { useRouter } from 'next/navigation'
+import { useForm, SubmitHandler } from 'react-hook-form'
+import styles from '../auth.module.scss'
+import { useCallback, useState } from 'react'
 
 interface Inputs {
-  username: string;
-  password: string;
+  username: string
+  password: string
 }
 
 export default function LoginPage() {
-  console.log("login page called");
-  const router = useRouter();
-  const [loginError, setLoginError] = useState<string | null>(null);
+  const router = useRouter()
+  const [loginError, setLoginError] = useState<string | null>(null)
   const {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<Inputs>();
+  } = useForm<Inputs>()
 
   const onLogin: SubmitHandler<Inputs> = useCallback(
     async (data, event) => {
-      event?.preventDefault();
+      event?.preventDefault()
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/login`,
         {
-          method: "POST",
+          method: 'POST',
           headers: {
-            "Content-Type": "application/json",
+            'Content-Type': 'application/json',
           },
           body: JSON.stringify(data),
-          credentials: "include",
-        },
-      );
+          credentials: 'include',
+        }
+      )
 
       if (!res.ok) {
-        const error = (await res.json()) as { message: string };
-        console.error(error, "error");
-        setLoginError(error.message);
-        return;
+        const error = (await res.json()) as { message: string }
+        console.error(error, 'error')
+        setLoginError(error.message)
+        return
       }
 
-      console.log(res, "res success");
-      router.push("/");
-      router.refresh();
+      console.log(res, 'res success')
+      router.push('/')
+      router.refresh()
     },
-    [router],
-  );
+    [router]
+  )
 
   return (
     <>
       <h1>LOGIN</h1>
       <form onSubmit={handleSubmit(onLogin)} id="loginForm">
         <Input
-          {...register("username", {
-            required: { value: true, message: "Username is required" },
+          {...register('username', {
+            required: { value: true, message: 'Username is required' },
           })}
           name="username"
           placeholder="Username"
           type="text"
         />
         <Input
-          {...register("password", {
-            required: { value: true, message: "Password is required" },
+          {...register('password', {
+            required: { value: true, message: 'Password is required' },
           })}
           name="password"
           placeholder="Password"
@@ -86,5 +85,5 @@ export default function LoginPage() {
         </Button>
       </div>
     </>
-  );
+  )
 }

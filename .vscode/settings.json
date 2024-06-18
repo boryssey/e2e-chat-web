@@ -1,11 +1,9 @@
 {
-  "editor.defaultFormatter": "dbaeumer.vscode-eslint",
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
   "css.lint.validProperties": ["composes"],
   "scss.lint.validProperties": ["composes"],
-  "[typescript]": {
-    "editor.defaultFormatter": "dbaeumer.vscode-eslint"
-  },
-  "[typescriptreact]": {
-    "editor.defaultFormatter": "dbaeumer.vscode-eslint"
+  "editor.formatOnSave": true,
+  "[scss]": {
+    "editor.formatOnSaveMode": "file"
   }
 }

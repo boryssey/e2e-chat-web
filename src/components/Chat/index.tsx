@@ -1,77 +1,116 @@
-import AppDB, { Contact } from "@/utils/db";
-import { useLiveQuery } from "dexie-react-hooks";
-import styles from "./chat.module.scss";
-import { FormEvent, useCallback, useState } from "react";
+import AppDB, { Contact, Message } from '@/utils/db'
+import { useLiveQuery } from 'dexie-react-hooks'
+import styles from './chat.module.scss'
+import { FormEvent, useCallback, useMemo, useState } from 'react'
+import { DateTime } from 'luxon'
 
 interface ChatProps {
-  appDB: AppDB;
-  contact: Contact | null;
+  appDB: AppDB
+  contact: Contact | null
   onSendMessage: (
     messageText: string,
-    recipientUsername: string,
-  ) => void | Promise<void>;
+    recipientUsername: string
+  ) => void | Promise<void>
 }
+
+const yesterdayDate = DateTime.local().minus({ days: 1 })
+
 const Chat = ({ appDB, contact, onSendMessage }: ChatProps) => {
-  const [messageText, setMessageText] = useState("");
+  const [messageText, setMessageText] = useState('')
   const messages = useLiveQuery(
     () =>
       contact
         ? appDB.messages
-            .where("contactId")
+            .where('contactId')
             .equals(contact.id!)
-            .sortBy("timestamp")
+            .sortBy('timestamp')
         : [],
-    [contact?.id],
-  );
+    [contact?.id]
+  )
+
+  const messagesGroupedByDate = useMemo(() => {
+    const grouped = new Map<string, Message[]>()
+    messages?.forEach((message) => {
+      const date = DateTime.fromMillis(message.timestamp)
+      const formattedDate = date.toFormat('yyyy-MM-dd')
+      if (!grouped.has(formattedDate)) {
+        grouped.set(formattedDate, [])
+      }
+      grouped.get(formattedDate)?.push(message)
+    })
+    console.log(grouped.entries(), 'grouped entries')
+    return grouped
+  }, [messages])
 
   const handleSendMessage = useCallback(
     (e: FormEvent<HTMLFormElement>) => {
-      e.preventDefault();
+      e.preventDefault()
       if (!contact || !messageText) {
-        return;
+        return
       }
-      void onSendMessage(messageText, contact.name);
-      setMessageText("");
+      void onSendMessage(messageText, contact.name)
+      setMessageText('')
     },
-    [contact, messageText, onSendMessage],
-  );
+    [contact, messageText, onSendMessage]
+  )
 
   if (!contact) {
-    return <div className={styles.emptyContainer}>No contact selected</div>;
+    return <div className={styles.emptyContainer}>No contact selected</div>
   }
 
   return (
     <div className={styles.container}>
       <div className={styles.messageContainer}>
-        {messages?.map((message) => {
+        {Array.from(messagesGroupedByDate).map(([date, messages]) => {
+          const dateObj = DateTime.fromISO(date)
           return (
-            <div
-              className={`${styles.message} ${
-                message.isFromMe ? styles.myMessage : ""
-              }`}
-              key={message.id}
-            >
-              {message.message}-{message.timestamp}-{message.isFromMe}
-            </div>
-          );
+            <>
+              <time dateTime={date} className={styles.date}>
+                {dateObj >= yesterdayDate
+                  ? dateObj.setLocale('en-US').toRelativeCalendar()
+                  : date}
+              </time>
+              {messages.map((message) => {
+                const dateTime = DateTime.fromMillis(message.timestamp)
+                return (
+                  <div
+                    className={
+                      message.isFromMe ? styles.myMessage : styles.message
+                    }
+                    key={message.id}
+                  >
+                    {message.message}
+                    <time
+                      dateTime={dateTime.isValid ? dateTime.toISO() : undefined}
+                    >
+                      {dateTime.toLocaleString({
+                        hour: 'numeric',
+                        minute: 'numeric',
+                      })}
+                    </time>
+                  </div>
+                )
+              })}
+            </>
+          )
         })}
       </div>
       <form
         className={styles.inputContainer}
         onSubmit={(e) => {
-          handleSendMessage(e);
+          handleSendMessage(e)
         }}
       >
         <input
           value={messageText}
           onChange={(e) => {
-            setMessageText(e.target.value);
+            setMessageText(e.target.value)
           }}
         />
         <button type="submit">Send</button>
       </form>
     </div>
-  );
-};
+  )
+}
 
-export default Chat;
+export default Chat

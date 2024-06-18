@@ -1,6 +1,6 @@
-import Page from "./page";
+import Page from './page'
 const DefaultLanding = ({ ...props }) => {
-  return <Page {...props} />;
-};
+  return <Page {...props} />
+}
 
-export default DefaultLanding;
+export default DefaultLanding

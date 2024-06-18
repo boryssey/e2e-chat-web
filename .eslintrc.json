@@ -19,10 +19,16 @@
         "ignoreRestSiblings": true
       }
     ],
-    "@typescript-eslint/restrict-plus-operands": ["error", {"allowNumberAndString": true}],
-    "@typescript-eslint/restrict-template-expressions": ["error", {
-      "allowNumber": true
-    }],
+    "@typescript-eslint/restrict-plus-operands": [
+      "error",
+      { "allowNumberAndString": true }
+    ],
+    "@typescript-eslint/restrict-template-expressions": [
+      "error",
+      {
+        "allowNumber": true
+      }
+    ],
     "@typescript-eslint/no-non-null-assertion": ["off"],
     "@typescript-eslint/no-misused-promises": "off"
   },

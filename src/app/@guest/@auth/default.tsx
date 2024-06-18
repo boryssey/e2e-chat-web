@@ -1,6 +1,6 @@
-import { redirect } from "next/navigation";
+import { redirect } from 'next/navigation'
 
 export default function DefaultAuthPage() {
-  console.log("auth default page called");
-  redirect("/login");
+  console.log('auth default page called')
+  redirect('/login')
 }

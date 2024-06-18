@@ -1,5 +1,5 @@
-import { ButtonHTMLAttributes, DetailedHTMLProps } from "react";
-import styles from "./button.module.scss";
+import { ButtonHTMLAttributes, DetailedHTMLProps } from 'react'
+import styles from './button.module.scss'
 
 const Arrow = () => {
   return (
@@ -17,15 +17,15 @@ const Arrow = () => {
         ></path>
       </svg>
     </div>
-  );
-};
+  )
+}
 
 const Button = ({
   children,
   withArrow = false,
-  color = "primary",
+  color = 'primary',
   ...props
-}: { withArrow?: boolean; color?: "primary" | "secondary" } & DetailedHTMLProps<
+}: { withArrow?: boolean; color?: 'primary' | 'secondary' } & DetailedHTMLProps<
   ButtonHTMLAttributes<HTMLButtonElement>,
   HTMLButtonElement
 >) => {
@@ -33,7 +33,7 @@ const Button = ({
     <button className={styles[color]} {...props}>
       {children} {withArrow && <Arrow />}
     </button>
-  );
-};
+  )
+}
 
-export default Button;
+export default Button

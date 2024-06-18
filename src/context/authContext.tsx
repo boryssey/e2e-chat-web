@@ -1,40 +1,40 @@
-"use client";
+'use client'
 
-import { useContext, createContext } from "react";
+import { useContext, createContext } from 'react'
 
 interface IAuthContext {
-  user: User;
-  logout: () => Promise<Response>;
+  user: User
+  logout: () => Promise<Response>
 }
 
-const AuthContext = createContext<IAuthContext | null>(null);
+const AuthContext = createContext<IAuthContext | null>(null)
 
 export const useAuthContext = () => {
-  const authContext = useContext(AuthContext);
+  const authContext = useContext(AuthContext)
   if (!authContext) {
-    throw new Error("useAuthContext must be used within an AuthProvider");
+    throw new Error('useAuthContext must be used within an AuthProvider')
   }
-  return authContext;
-};
+  return authContext
+}
 export interface User {
-  id: number;
-  username: string;
-  created_at: Date | null;
-  deleted_at: Date | null;
+  id: number
+  username: string
+  created_at: Date | null
+  deleted_at: Date | null
 }
 
 const logout = async () =>
   fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/logout`, {
-    method: "GET",
-    credentials: "include",
-  });
+    method: 'GET',
+    credentials: 'include',
+  })
 
 const AuthProvider = ({
   userInfo,
   children,
 }: {
-  userInfo: User;
-  children: React.ReactNode;
+  userInfo: User
+  children: React.ReactNode
 }) => {
   return (
     <AuthContext.Provider
@@ -45,7 +45,7 @@ const AuthProvider = ({
     >
       {children}
     </AuthContext.Provider>
-  );
-};
+  )
+}
 
-export default AuthProvider;
+export default AuthProvider

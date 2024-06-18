@@ -1,5 +1,22 @@
+.mainContainer {
+  display: flex;
+  flex-direction: column;
+}
+
 .container {
-    display: grid;
-    grid-template-columns: auto 1fr;
-    height: 100%;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  height: 100%;
+  flex: 1;
+}
+
+.debugButton {
+  width: 100%;
+  padding: 4px;
+  background-color: var(--ds-gray-700);
+  border: none;
+
+  &:hover {
+    background-color: var(--ds-gray-800);
+  }
 }

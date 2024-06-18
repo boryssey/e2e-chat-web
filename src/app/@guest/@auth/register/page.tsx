@@ -1,63 +1,63 @@
-"use client";
-import Button from "@/components/Button";
-import Input from "@/components/Input";
-import { useForm, SubmitHandler } from "react-hook-form";
-import styles from "../auth.module.scss";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+'use client'
+import Button from '@/components/Button'
+import Input from '@/components/Input'
+import { useForm, SubmitHandler } from 'react-hook-form'
+import styles from '../auth.module.scss'
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 
 interface Inputs {
-  username: string;
-  password: string;
-  confirmPassword: string;
+  username: string
+  password: string
+  confirmPassword: string
 }
 
 export default function LoginPage() {
-  const [registerError, setRegisterError] = useState<string | null>(null);
-  const router = useRouter();
+  const [registerError, setRegisterError] = useState<string | null>(null)
+  const router = useRouter()
 
   const {
     register,
     watch,
     handleSubmit,
     formState: { errors },
-  } = useForm<Inputs>();
+  } = useForm<Inputs>()
 
   const onRegister: SubmitHandler<Inputs> = async (data) => {
     const res = await fetch(
       `${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/register`,
       {
-        method: "POST",
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify(data),
-        credentials: "include",
-      },
-    );
+        credentials: 'include',
+      }
+    )
     if (!res.ok) {
-      const error = (await res.json()) as { message: string };
-      setRegisterError(error.message);
-      return;
+      const error = (await res.json()) as { message: string }
+      setRegisterError(error.message)
+      return
     }
-    setRegisterError(null);
-    router.push("/");
-  };
+    setRegisterError(null)
+    router.push('/')
+  }
 
   return (
     <>
       <h1>CREATE ACCOUNT</h1>
       <form onSubmit={handleSubmit(onRegister)} id="loginForm">
         <Input
-          {...register("username", {
-            required: { value: true, message: "Username is required" },
+          {...register('username', {
+            required: { value: true, message: 'Username is required' },
             minLength: {
               value: 3,
-              message: "Username must be at least 3 characters",
+              message: 'Username must be at least 3 characters',
             },
             maxLength: {
               value: 20,
-              message: "Username must be at most 20 characters",
+              message: 'Username must be at most 20 characters',
             },
           })}
           name="username"
@@ -65,28 +65,28 @@ export default function LoginPage() {
           type="text"
         />
         <Input
-          {...register("password", {
-            required: { value: true, message: "Password is required" },
+          {...register('password', {
+            required: { value: true, message: 'Password is required' },
             minLength: {
               value: 8,
-              message: "Password must be at least 8 characters",
+              message: 'Password must be at least 8 characters',
             },
             maxLength: {
               value: 20,
-              message: "Password must be at most 20 characters",
+              message: 'Password must be at most 20 characters',
             },
             validate: {
               uppercase: (value) =>
                 /[A-Z]/.test(value) ||
-                "Password must contain an uppercase letter",
+                'Password must contain an uppercase letter',
               lowercase: (value) =>
                 /[a-z]/.test(value) ||
-                "Password must contain a lowercase letter",
+                'Password must contain a lowercase letter',
               number: (value) =>
-                /[0-9]/.test(value) || "Password must contain a number",
+                /[0-9]/.test(value) || 'Password must contain a number',
               specialCharacter: (value) =>
                 /[!@#$%^&*]/.test(value) ||
-                "Password must contain a special character",
+                'Password must contain a special character',
             },
           })}
           name="password"
@@ -94,11 +94,11 @@ export default function LoginPage() {
           type="password"
         />
         <Input
-          {...register("confirmPassword", {
-            required: { value: true, message: "Confirm Password is required" },
+          {...register('confirmPassword', {
+            required: { value: true, message: 'Confirm Password is required' },
             validate: {
               value: (value) =>
-                value === watch("password") || "Passwords do not match",
+                value === watch('password') || 'Passwords do not match',
             },
           })}
           name="confirmPassword"
@@ -121,5 +121,5 @@ export default function LoginPage() {
         </Button>
       </div>
     </>
-  );
+  )
 }

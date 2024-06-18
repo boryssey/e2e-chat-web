@@ -1,47 +1,47 @@
-import { useState } from "react";
-import Input from "../Input";
-import { SubmitHandler, useForm } from "react-hook-form";
-import Button from "../Button";
-import styles from "./passwordPrompt.module.scss";
+import { useState } from 'react'
+import Input from '../Input'
+import { SubmitHandler, useForm } from 'react-hook-form'
+import Button from '../Button'
+import styles from './passwordPrompt.module.scss'
 
 interface PasswordPromptProps {
-  onSubmit: (password: string, withCreateID?: boolean) => void | Promise<void>;
-  promptLabel: string | React.ReactNode;
-  withConfirmation?: boolean;
+  onSubmit: (password: string, withCreateID?: boolean) => void | Promise<void>
+  promptLabel: string | React.ReactNode
+  withConfirmation?: boolean
 }
 
 type Inputs<T> = T extends true
   ? {
-      password: string;
-      passwordConfirmation: string;
+      password: string
+      passwordConfirmation: string
     }
   : {
-      password: string;
-    };
+      password: string
+    }
 
 const PasswordPrompt = ({
   onSubmit,
   promptLabel,
   withConfirmation = false,
 }: PasswordPromptProps) => {
-  const [password, setPassword] = useState("");
+  const [password, setPassword] = useState('')
   const {
     register,
     watch,
     handleSubmit,
     formState: { errors },
-  } = useForm<Inputs<typeof withConfirmation>>();
+  } = useForm<Inputs<typeof withConfirmation>>()
 
   const onFormSubmit: SubmitHandler<Inputs<typeof withConfirmation>> = (
     data,
-    event,
+    event
   ) => {
-    console.log(event, "event");
+    console.log(event, 'event')
 
-    event?.preventDefault();
+    event?.preventDefault()
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    onSubmit(data.password, withConfirmation);
-  };
+    onSubmit(data.password, withConfirmation)
+  }
 
   return (
     <main className={styles.container}>
@@ -51,49 +51,52 @@ const PasswordPrompt = ({
           color="secondary"
           type="password"
           placeholder="Password"
-          {...register("password", {
-            required: { value: true, message: "Password is required" },
+          {...register('password', {
+            required: {
+              value: true,
+              message: 'Password is required',
+            },
             ...(withConfirmation && {
               minLength: {
                 value: 4,
-                message: "Password must be at least 8 characters",
+                message: 'Password must be at least 8 characters',
               },
               maxLength: {
                 value: 32,
-                message: "Password must be at most 20 characters",
+                message: 'Password must be at most 20 characters',
               },
               validate: {
                 uppercase: (value) =>
                   /[A-Z]/.test(value) ||
-                  "Password must contain an uppercase letter",
+                  'Password must contain an uppercase letter',
                 lowercase: (value) =>
                   /[a-z]/.test(value) ||
-                  "Password must contain a lowercase letter",
+                  'Password must contain a lowercase letter',
                 number: (value) =>
-                  /[0-9]/.test(value) || "Password must contain a number",
+                  /[0-9]/.test(value) || 'Password must contain a number',
                 specialCharacter: (value) =>
                   /[!@#$%^&*]/.test(value) ||
-                  "Password must contain a special character",
+                  'Password must contain a special character',
               },
             }),
           })}
           value={password}
           onChange={(e) => {
-            setPassword(e.target.value);
+            setPassword(e.target.value)
           }}
         />
         {withConfirmation && (
           <Input
             placeholder="Confirm Password"
             color="secondary"
-            {...register("passwordConfirmation", {
+            {...register('passwordConfirmation', {
               required: {
                 value: true,
-                message: "Confirm Password is required",
+                message: 'Confirm Password is required',
               },
               validate: {
                 value: (value) =>
-                  value === watch("password") || "Passwords do not match",
+                  value === watch('password') || 'Passwords do not match',
               },
             })}
             type="password"
@@ -112,7 +115,7 @@ const PasswordPrompt = ({
         Submit
       </Button>
     </main>
-  );
-};
+  )
+}
 
-export default PasswordPrompt;
+export default PasswordPrompt
