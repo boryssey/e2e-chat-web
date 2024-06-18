@@ -1,49 +1,72 @@
-.container { 
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    min-height: 200px;
+.container {
+  width: 100%;
+  min-height: 200px;
+  display: flex;
+  flex-direction: column;
 }
 
 .emptyContainer {
-    display: grid;
-    place-content: center;
-    height: 100%;
+  display: grid;
+  place-content: center;
+  height: 100%;
 }
 
-.messageContainer { 
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    padding: 10px;
-    margin: 5px;
-    flex: 1;
+.messageContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  width: 100%;
+  padding: 10px;
+  flex: 1;
+  justify-content: flex-end;
 }
-
 
 .message {
-    align-self: flex-start;
+  align-self: flex-start;
+  background-color: var(--ds-gray-100);
+  padding: 5px 10px;
+  min-width: 50px;
+  border-radius: 8px;
+  border: 1px solid var(--ds-gray-400);
+
+  :hover {
+    background-color: var(--ds-gray-200);
+    border-color: var(--ds-gray-500);
+  }
+
+  time {
+    padding-left: 4px;
+    font-size: 10px;
+    color: $gray9;
+  }
 }
 
 .myMessage {
-    align-self: flex-end;
+  composes: message;
+  align-self: flex-end;
+  text-align: end;
 }
 
 .inputContainer {
-    display: flex;
+  display: flex;
 
-    input {
-        flex: 1;
-        padding: 10px;
-    }
+  input {
+    flex: 1;
+    padding: 10px;
+  }
 
-    button {
-        padding: 10px 5px;
-        background-color: black;
-        color: white;
-        border: none;
-        cursor: pointer;
-        
-    }
+  button {
+    padding: 10px 5px;
+    background-color: black;
+    color: white;
+    border: none;
+    cursor: pointer;
+  }
+}
 
+.date {
+  font-size: 12px;
+  color: var(--ds-gray-1000);
+  align-self: center;
+  padding: 5px 0;
 }

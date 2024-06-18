@@ -1,301 +1,466 @@
 :root {
-    --font-black: 900;
-    --font-extrabold: 800;
-    --font-bold: 700;
-    --font-semibold: 600;
-    --font-medium: 500;
-    --font-regular: 400;
-    --font-light: 300;
-    --font-extralight: 200;
-    --color-black: #000;
-  }
-  
-  * {
-    box-sizing: border-box;
-    padding: 0;
-    margin: 0;
-  }
-  
+  --font-black: 900;
+  --font-extrabold: 800;
+  --font-bold: 700;
+  --font-semibold: 600;
+  --font-medium: 500;
+  --font-regular: 400;
+  --font-light: 300;
+  --font-extralight: 200;
+  --ds-gray-100-value: 0, 0%, 95%;
+  --ds-gray-200-value: 0, 0%, 92%;
+  --ds-gray-300-value: 0, 0%, 90%;
+  --ds-gray-400-value: 0, 0%, 92%;
+  --ds-gray-500-value: 0, 0%, 79%;
+  --ds-gray-600-value: 0, 0%, 66%;
+  --ds-gray-700-value: 0, 0%, 56%;
+  --ds-gray-800-value: 0, 0%, 49%;
+  --ds-gray-900-value: 0, 0%, 40%;
+  --ds-gray-1000-value: 0, 0%, 9%;
+  --ds-blue-100-value: 212, 100%, 97%;
+  --ds-blue-200-value: 210, 100%, 96%;
+  --ds-blue-300-value: 210, 100%, 94%;
+  --ds-blue-400-value: 209, 100%, 90%;
+  --ds-blue-500-value: 209, 100%, 80%;
+  --ds-blue-600-value: 208, 100%, 66%;
+  --ds-blue-700-value: 212, 100%, 48%;
+  --ds-blue-800-value: 212, 100%, 41%;
+  --ds-blue-900-value: 211, 100%, 42%;
+  --ds-blue-1000-value: 211, 100%, 15%;
+  --ds-red-100-value: 0, 100%, 97%;
+  --ds-red-200-value: 0, 100%, 96%;
+  --ds-red-300-value: 0, 100%, 95%;
+  --ds-red-400-value: 0, 90%, 92%;
+  --ds-red-500-value: 0, 82%, 85%;
+  --ds-red-600-value: 359, 90%, 71%;
+  --ds-red-700-value: 358, 75%, 59%;
+  --ds-red-800-value: 358, 70%, 52%;
+  --ds-red-900-value: 358, 66%, 48%;
+  --ds-red-1000-value: 355, 49%, 15%;
+  --ds-amber-100-value: 39, 100%, 95%;
+  --ds-amber-200-value: 44, 100%, 92%;
+  --ds-amber-300-value: 43, 96%, 90%;
+  --ds-amber-400-value: 42, 100%, 78%;
+  --ds-amber-500-value: 38, 100%, 71%;
+  --ds-amber-600-value: 36, 90%, 62%;
+  --ds-amber-700-value: 39, 100%, 57%;
+  --ds-amber-800-value: 35, 100%, 52%;
+  --ds-amber-900-value: 30, 100%, 32%;
+  --ds-amber-1000-value: 20, 79%, 17%;
+  --ds-green-100-value: 120, 60%, 96%;
+  --ds-green-200-value: 120, 60%, 95%;
+  --ds-green-300-value: 120, 60%, 91%;
+  --ds-green-400-value: 122, 60%, 86%;
+  --ds-green-500-value: 124, 60%, 75%;
+  --ds-green-600-value: 125, 60%, 64%;
+  --ds-green-700-value: 131, 41%, 46%;
+  --ds-green-800-value: 132, 43%, 39%;
+  --ds-green-900-value: 133, 50%, 32%;
+  --ds-green-1000-value: 128, 29%, 15%;
+  --ds-teal-100-value: 169, 70%, 96%;
+  --ds-teal-200-value: 167, 70%, 94%;
+  --ds-teal-300-value: 168, 70%, 90%;
+  --ds-teal-400-value: 170, 70%, 85%;
+  --ds-teal-500-value: 170, 70%, 72%;
+  --ds-teal-600-value: 170, 70%, 57%;
+  --ds-teal-700-value: 173, 80%, 36%;
+  --ds-teal-800-value: 173, 83%, 30%;
+  --ds-teal-900-value: 174, 91%, 25%;
+  --ds-teal-1000-value: 171, 80%, 13%;
+  --ds-purple-100-value: 276, 100%, 97%;
+  --ds-purple-200-value: 277, 87%, 97%;
+  --ds-purple-300-value: 274, 78%, 95%;
+  --ds-purple-400-value: 276, 71%, 92%;
+  --ds-purple-500-value: 274, 70%, 82%;
+  --ds-purple-600-value: 273, 72%, 73%;
+  --ds-purple-700-value: 272, 51%, 54%;
+  --ds-purple-800-value: 272, 47%, 45%;
+  --ds-purple-900-value: 274, 71%, 43%;
+  --ds-purple-1000-value: 276, 100%, 15%;
+  --ds-pink-100-value: 330, 100%, 96%;
+  --ds-pink-200-value: 340, 90%, 96%;
+  --ds-pink-300-value: 340, 82%, 94%;
+  --ds-pink-400-value: 341, 76%, 91%;
+  --ds-pink-500-value: 340, 75%, 84%;
+  --ds-pink-600-value: 341, 75%, 73%;
+  --ds-pink-700-value: 336, 80%, 58%;
+  --ds-pink-800-value: 336, 74%, 51%;
+  --ds-pink-900-value: 336, 65%, 45%;
+  --ds-pink-1000-value: 333, 74%, 15%;
+  --ds-gray-alpha-100: rgba(0, 0, 0, 0.05);
+  --ds-gray-alpha-200: rgba(0, 0, 0, 0.08);
+  --ds-gray-alpha-300: rgba(0, 0, 0, 0.1);
+  --ds-gray-alpha-400: rgba(0, 0, 0, 0.08);
+  --ds-gray-alpha-500: rgba(0, 0, 0, 0.21);
+  --ds-gray-alpha-600: rgba(0, 0, 0, 0.34);
+  --ds-gray-alpha-700: rgba(0, 0, 0, 0.44);
+  --ds-gray-alpha-800: rgba(0, 0, 0, 0.51);
+  --ds-gray-alpha-900: rgba(0, 0, 0, 0.61);
+  --ds-gray-alpha-1000: rgba(0, 0, 0, 0.91);
+  --ds-background-100: #fff;
+  --ds-background-200: #fafafa;
+  --ds-contrast-fg: #fff;
+  --ds-focus-border: 0 0 0 1px var(--ds-gray-alpha-600),
+    0px 0px 0px 4px rgba(0, 0, 0, 0.16);
+  --ds-focus-color: var(--ds-blue-700);
+  --vaul-overlay-background: 255, 255, 255;
+  --vaul-overlay-background-start: transparent;
+  --vaul-overlay-background-end: rgba(0, 0, 0, 0.4);
+
+  --ds-gray-100: hsla(var(--ds-gray-100-value), 1);
+  --ds-gray-200: hsla(var(--ds-gray-200-value), 1);
+  --ds-gray-300: hsla(var(--ds-gray-300-value), 1);
+  --ds-gray-400: hsla(var(--ds-gray-400-value), 1);
+  --ds-gray-500: hsla(var(--ds-gray-500-value), 1);
+  --ds-gray-600: hsla(var(--ds-gray-600-value), 1);
+  --ds-gray-700: hsla(var(--ds-gray-700-value), 1);
+  --ds-gray-800: hsla(var(--ds-gray-800-value), 1);
+  --ds-gray-900: hsla(var(--ds-gray-900-value), 1);
+  --ds-gray-1000: hsla(var(--ds-gray-1000-value), 1);
+  --ds-blue-100: hsla(var(--ds-blue-100-value), 1);
+  --ds-blue-200: hsla(var(--ds-blue-200-value), 1);
+  --ds-blue-300: hsla(var(--ds-blue-300-value), 1);
+  --ds-blue-400: hsla(var(--ds-blue-400-value), 1);
+  --ds-blue-500: hsla(var(--ds-blue-500-value), 1);
+  --ds-blue-600: hsla(var(--ds-blue-600-value), 1);
+  --ds-blue-700: hsla(var(--ds-blue-700-value), 1);
+  --ds-blue-800: hsla(var(--ds-blue-800-value), 1);
+  --ds-blue-900: hsla(var(--ds-blue-900-value), 1);
+  --ds-blue-1000: hsla(var(--ds-blue-1000-value), 1);
+  --ds-amber-100: hsla(var(--ds-amber-100-value), 1);
+  --ds-amber-200: hsla(var(--ds-amber-200-value), 1);
+  --ds-amber-300: hsla(var(--ds-amber-300-value), 1);
+  --ds-amber-400: hsla(var(--ds-amber-400-value), 1);
+  --ds-amber-500: hsla(var(--ds-amber-500-value), 1);
+  --ds-amber-600: hsla(var(--ds-amber-600-value), 1);
+  --ds-amber-700: hsla(var(--ds-amber-700-value), 1);
+  --ds-amber-800: hsla(var(--ds-amber-800-value), 1);
+  --ds-amber-900: hsla(var(--ds-amber-900-value), 1);
+  --ds-amber-1000: hsla(var(--ds-amber-1000-value), 1);
+  --ds-red-100: hsla(var(--ds-red-100-value), 1);
+  --ds-red-200: hsla(var(--ds-red-200-value), 1);
+  --ds-red-300: hsla(var(--ds-red-300-value), 1);
+  --ds-red-400: hsla(var(--ds-red-400-value), 1);
+  --ds-red-500: hsla(var(--ds-red-500-value), 1);
+  --ds-red-600: hsla(var(--ds-red-600-value), 1);
+  --ds-red-700: hsla(var(--ds-red-700-value), 1);
+  --ds-red-800: hsla(var(--ds-red-800-value), 1);
+  --ds-red-900: hsla(var(--ds-red-900-value), 1);
+  --ds-red-1000: hsla(var(--ds-red-1000-value), 1);
+  --ds-green-100: hsla(var(--ds-green-100-value), 1);
+  --ds-green-200: hsla(var(--ds-green-200-value), 1);
+  --ds-green-300: hsla(var(--ds-green-300-value), 1);
+  --ds-green-400: hsla(var(--ds-green-400-value), 1);
+  --ds-green-500: hsla(var(--ds-green-500-value), 1);
+  --ds-green-600: hsla(var(--ds-green-600-value), 1);
+  --ds-green-700: hsla(var(--ds-green-700-value), 1);
+  --ds-green-800: hsla(var(--ds-green-800-value), 1);
+  --ds-green-900: hsla(var(--ds-green-900-value), 1);
+  --ds-green-1000: hsla(var(--ds-green-1000-value), 1);
+  --ds-teal-100: hsla(var(--ds-teal-100-value), 1);
+  --ds-teal-200: hsla(var(--ds-teal-200-value), 1);
+  --ds-teal-300: hsla(var(--ds-teal-300-value), 1);
+  --ds-teal-400: hsla(var(--ds-teal-400-value), 1);
+  --ds-teal-500: hsla(var(--ds-teal-500-value), 1);
+  --ds-teal-600: hsla(var(--ds-teal-600-value), 1);
+  --ds-teal-700: hsla(var(--ds-teal-700-value), 1);
+  --ds-teal-800: hsla(var(--ds-teal-800-value), 1);
+  --ds-teal-900: hsla(var(--ds-teal-900-value), 1);
+  --ds-teal-1000: hsla(var(--ds-teal-1000-value), 1);
+  --ds-purple-100: hsla(var(--ds-purple-100-value), 1);
+  --ds-purple-200: hsla(var(--ds-purple-200-value), 1);
+  --ds-purple-300: hsla(var(--ds-purple-300-value), 1);
+  --ds-purple-400: hsla(var(--ds-purple-400-value), 1);
+  --ds-purple-500: hsla(var(--ds-purple-500-value), 1);
+  --ds-purple-600: hsla(var(--ds-purple-600-value), 1);
+  --ds-purple-700: hsla(var(--ds-purple-700-value), 1);
+  --ds-purple-800: hsla(var(--ds-purple-800-value), 1);
+  --ds-purple-900: hsla(var(--ds-purple-900-value), 1);
+  --ds-purple-1000: hsla(var(--ds-purple-1000-value), 1);
+  --ds-pink-100: hsla(var(--ds-pink-100-value), 1);
+  --ds-pink-200: hsla(var(--ds-pink-200-value), 1);
+  --ds-pink-300: hsla(var(--ds-pink-300-value), 1);
+  --ds-pink-400: hsla(var(--ds-pink-400-value), 1);
+  --ds-pink-500: hsla(var(--ds-pink-500-value), 1);
+  --ds-pink-600: hsla(var(--ds-pink-600-value), 1);
+  --ds-pink-700: hsla(var(--ds-pink-700-value), 1);
+  --ds-pink-800: hsla(var(--ds-pink-800-value), 1);
+  --ds-pink-900: hsla(var(--ds-pink-900-value), 1);
+  --ds-pink-1000: hsla(var(--ds-pink-1000-value), 1);
+}
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+body {
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  margin: 0 auto;
+}
+
+main {
+  flex: 1;
+}
+
+//media max-width 768px
+@media (max-width: 768px) {
   body {
-      min-height: 100vh;
-      width: 100%;
-      display: flex;
-      flex-direction: column;
-      margin: 0 auto;
+    padding: 16px;
   }
-  
-  main {
-      flex: 1;
-  }
-  
-  //media max-width 768px
-  @media (max-width: 768px) {
-    body {
-      padding: 16px;
-    }
-  }
-  
-  a {
-    color: inherit;
-    text-decoration: none;
-  }
-  
-  
-  
-  *,
-  ::before,
-  ::after {
-      box-sizing: border-box;
-  }
-  
-  html {
-      /* Improve consistency of default fonts in all browsers. (https://github.com/sindresorhus/modern-normalize/issues/3) */
-      font-family:
-          system-ui,
-          'Segoe UI',
-          Roboto,
-          Helvetica,
-          Arial,
-          sans-serif,
-          'Apple Color Emoji',
-          'Segoe UI Emoji';
-      line-height: 1.35; /* 1. Correct the line height in all browsers. */
-      -webkit-text-size-adjust: 100%; /* 2. Prevent adjustments of font size after orientation changes in iOS. */
-      -moz-tab-size: 4; /* 3. Use a more readable tab size (opinionated). */
-      tab-size: 4; /* 3 */
-  }
-  
-  
-  /*
-  Grouping content
-  ================
-  */
-  
-  /**
-  1. Add the correct height in Firefox.
-  2. Correct the inheritance of border color in Firefox. (https://bugzilla.mozilla.org/show_bug.cgi?id=190655)
-  */
-  
-  hr {
-      height: 0; /* 1 */
-      color: inherit; /* 2 */
-  }
-  
-  /*
-  Text-level semantics
-  ====================
-  */
-  
-  /**
-  Add the correct text decoration in Chrome, Edge, and Safari.
-  */
-  
-  abbr[title] {
-      text-decoration: underline dotted;
-  }
-  
-  /**
-  Add the correct font weight in Edge and Safari.
-  */
-  
-  b,
-  strong {
-      font-weight: bolder;
-  }
-  
-  /**
-  1. Improve consistency of default fonts in all browsers. (https://github.com/sindresorhus/modern-normalize/issues/3)
-  2. Correct the odd 'em' font sizing in all browsers.
-  */
-  
-  code,
-  kbd,
-  samp,
-  pre {
-      font-family:
-          ui-monospace,
-          SFMono-Regular,
-          Consolas,
-          'Liberation Mono',
-          Menlo,
-          monospace; /* 1 */
-      font-size: 1em; /* 2 */
-  }
-  
-  /**
-  Add the correct font size in all browsers.
-  */
-  
-  small {
-      font-size: 80%;
-  }
-  
-  /**
-  Prevent 'sub' and 'sup' elements from affecting the line height in all browsers.
-  */
-  
-  sub,
-  sup {
-      font-size: 75%;
-      line-height: 0;
-      position: relative;
-      vertical-align: baseline;
-  }
-  
-  sub {
-      bottom: -0.25em;
-  }
-  
-  sup {
-      top: -0.5em;
-  }
-  
-  /*
-  Tabular data
-  ============
-  */
-  
-  /**
-  1. Remove text indentation from table contents in Chrome and Safari. (https://bugs.chromium.org/p/chromium/issues/detail?id=999088, https://bugs.webkit.org/show_bug.cgi?id=201297)
-  2. Correct table border color inheritance in Chrome and Safari. (https://bugs.chromium.org/p/chromium/issues/detail?id=935729, https://bugs.webkit.org/show_bug.cgi?id=195016)
-  */
-  
-  table {
-      text-indent: 0; /* 1 */
-      border-color: inherit; /* 2 */
-  }
-  
-  /*
-  Forms
-  =====
-  */
-  
-  /**
-  1. Change the font styles in all browsers.
-  2. Remove the margin in Firefox and Safari.
-  */
-  
-  button,
-  input,
-  optgroup,
-  select,
-  textarea {
-      font-family: inherit; /* 1 */
-      font-size: 100%; /* 1 */
-      line-height: 1.15; /* 1 */
-      margin: 0; /* 2 */
-  }
-  
-  /**
-  Remove the inheritance of text transform in Edge and Firefox.
-  */
-  
-  button,
-  select {
-      text-transform: none;
-  }
-  
-  /**
-  Correct the inability to style clickable types in iOS and Safari.
-  */
-  
-  button,
-  [type='button'],
-  [type='reset'],
-  [type='submit'] {
-      -webkit-appearance: button;
-  }
-  
-  /**
-  Remove the inner border and padding in Firefox.
-  */
-  
-  ::-moz-focus-inner {
-      border-style: none;
-      padding: 0;
-  }
-  
-  /**
-  Restore the focus styles unset by the previous rule.
-  */
-  
-  :-moz-focusring {
-      outline: 1px dotted ButtonText;
-  }
-  
-  /**
-  Remove the additional ':invalid' styles in Firefox.
-  See: https://github.com/mozilla/gecko-dev/blob/2f9eacd9d3d995c937b4251a5557d95d494c9be1/layout/style/res/forms.css#L728-L737
-  */
-  
-  :-moz-ui-invalid {
-      box-shadow: none;
-  }
-  
-  /**
-  Remove the padding so developers are not caught out when they zero out 'fieldset' elements in all browsers.
-  */
-  
-  legend {
-      padding: 0;
-  }
-  
-  /**
-  Add the correct vertical alignment in Chrome and Firefox.
-  */
-  
-  progress {
-      vertical-align: baseline;
-  }
-  
-  /**
-  Correct the cursor style of increment and decrement buttons in Safari.
-  */
-  
-  ::-webkit-inner-spin-button,
-  ::-webkit-outer-spin-button {
-      height: auto;
-  }
-  
-  /**
-  1. Correct the odd appearance in Chrome and Safari.
-  2. Correct the outline style in Safari.
-  */
-  
-  [type='search'] {
-      -webkit-appearance: textfield; /* 1 */
-      outline-offset: -2px; /* 2 */
-  }
-  
-  /**
-  Remove the inner padding in Chrome and Safari on macOS.
-  */
-  
-  ::-webkit-search-decoration {
-      -webkit-appearance: none;
-  }
-  
-  /**
-  1. Correct the inability to style clickable types in iOS and Safari.
-  2. Change font properties to 'inherit' in Safari.
-  */
-  
-  ::-webkit-file-upload-button {
-      -webkit-appearance: button; /* 1 */
-      font: inherit; /* 2 */
-  }
-  
-  /*
-  Interactive
-  ===========
-  */
-  
-  /*
-  Add the correct display in Chrome and Safari.
-  */
-  
-  summary {
-      display: list-item;
-  }
-  
-  
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+*,
+::before,
+::after {
+  box-sizing: border-box;
+}
+
+html {
+  /* Improve consistency of default fonts in all browsers. (https://github.com/sindresorhus/modern-normalize/issues/3) */
+  font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif,
+    'Apple Color Emoji', 'Segoe UI Emoji';
+  line-height: 1.35; /* 1. Correct the line height in all browsers. */
+  -webkit-text-size-adjust: 100%; /* 2. Prevent adjustments of font size after orientation changes in iOS. */
+  -moz-tab-size: 4; /* 3. Use a more readable tab size (opinionated). */
+  tab-size: 4; /* 3 */
+}
+
+/*
+Grouping content
+================
+*/
+
+/**
+1. Add the correct height in Firefox.
+2. Correct the inheritance of border color in Firefox. (https://bugzilla.mozilla.org/show_bug.cgi?id=190655)
+*/
+
+hr {
+  height: 0; /* 1 */
+  color: inherit; /* 2 */
+}
+
+/*
+Text-level semantics
+====================
+*/
+
+/**
+Add the correct text decoration in Chrome, Edge, and Safari.
+*/
+
+abbr[title] {
+  text-decoration: underline dotted;
+}
+
+/**
+Add the correct font weight in Edge and Safari.
+*/
+
+b,
+strong {
+  font-weight: bolder;
+}
+
+/**
+1. Improve consistency of default fonts in all browsers. (https://github.com/sindresorhus/modern-normalize/issues/3)
+2. Correct the odd 'em' font sizing in all browsers.
+*/
+
+code,
+kbd,
+samp,
+pre {
+  font-family: ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', Menlo,
+    monospace; /* 1 */
+  font-size: 1em; /* 2 */
+}
+
+/**
+Add the correct font size in all browsers.
+*/
+
+small {
+  font-size: 80%;
+}
+
+/**
+Prevent 'sub' and 'sup' elements from affecting the line height in all browsers.
+*/
+
+sub,
+sup {
+  font-size: 75%;
+  line-height: 0;
+  position: relative;
+  vertical-align: baseline;
+}
+
+sub {
+  bottom: -0.25em;
+}
+
+sup {
+  top: -0.5em;
+}
+
+/*
+Tabular data
+============
+*/
+
+/**
+1. Remove text indentation from table contents in Chrome and Safari. (https://bugs.chromium.org/p/chromium/issues/detail?id=999088, https://bugs.webkit.org/show_bug.cgi?id=201297)
+2. Correct table border color inheritance in Chrome and Safari. (https://bugs.chromium.org/p/chromium/issues/detail?id=935729, https://bugs.webkit.org/show_bug.cgi?id=195016)
+*/
+
+table {
+  text-indent: 0; /* 1 */
+  border-color: inherit; /* 2 */
+}
+
+/*
+Forms
+=====
+*/
+
+/**
+1. Change the font styles in all browsers.
+2. Remove the margin in Firefox and Safari.
+*/
+
+button,
+input,
+optgroup,
+select,
+textarea {
+  font-family: inherit; /* 1 */
+  font-size: 100%; /* 1 */
+  line-height: 1.15; /* 1 */
+  margin: 0; /* 2 */
+}
+
+/**
+Remove the inheritance of text transform in Edge and Firefox.
+*/
+
+button,
+select {
+  text-transform: none;
+}
+
+/**
+Correct the inability to style clickable types in iOS and Safari.
+*/
+
+button,
+[type='button'],
+[type='reset'],
+[type='submit'] {
+  -webkit-appearance: button;
+}
+
+/**
+Remove the inner border and padding in Firefox.
+*/
+
+::-moz-focus-inner {
+  border-style: none;
+  padding: 0;
+}
+
+/**
+Restore the focus styles unset by the previous rule.
+*/
+
+:-moz-focusring {
+  outline: 1px dotted ButtonText;
+}
+
+/**
+Remove the additional ':invalid' styles in Firefox.
+See: https://github.com/mozilla/gecko-dev/blob/2f9eacd9d3d995c937b4251a5557d95d494c9be1/layout/style/res/forms.css#L728-L737
+*/
+
+:-moz-ui-invalid {
+  box-shadow: none;
+}
+
+/**
+Remove the padding so developers are not caught out when they zero out 'fieldset' elements in all browsers.
+*/
+
+legend {
+  padding: 0;
+}
+
+/**
+Add the correct vertical alignment in Chrome and Firefox.
+*/
+
+progress {
+  vertical-align: baseline;
+}
+
+/**
+Correct the cursor style of increment and decrement buttons in Safari.
+*/
+
+::-webkit-inner-spin-button,
+::-webkit-outer-spin-button {
+  height: auto;
+}
+
+/**
+1. Correct the odd appearance in Chrome and Safari.
+2. Correct the outline style in Safari.
+*/
+
+[type='search'] {
+  -webkit-appearance: textfield; /* 1 */
+  outline-offset: -2px; /* 2 */
+}
+
+/**
+Remove the inner padding in Chrome and Safari on macOS.
+*/
+
+::-webkit-search-decoration {
+  -webkit-appearance: none;
+}
+
+/**
+1. Correct the inability to style clickable types in iOS and Safari.
+2. Change font properties to 'inherit' in Safari.
+*/
+
+::-webkit-file-upload-button {
+  -webkit-appearance: button; /* 1 */
+  font: inherit; /* 2 */
+}
+
+/*
+Interactive
+===========
+*/
+
+/*
+Add the correct display in Chrome and Safari.
+*/
+
+summary {
+  display: list-item;
+}
+
+:global {
+}
