@@ -57,6 +57,30 @@ const UserPage = () => {
             </button>
             <button onClick={() => testSaveKeyBundle()}>testLocal</button>
             <p>Status: {socketState}</p>
+            <div>
+              <input type="text" id="recipientNameInput" />
+              <button
+                onClick={() => {
+                  const inputElement = document.getElementById(
+                    'recipientNameInput'
+                  ) as HTMLInputElement | null
+                  if (!inputElement) {
+                    return
+                  }
+                  const recipientName = inputElement.value
+                  appDB
+                    .addContact(recipientName)
+                    .then(() => {
+                      inputElement.value = ''
+                    })
+                    .catch((error: unknown) => {
+                      console.error(error)
+                    })
+                }}
+              >
+                Add contact
+              </button>
+            </div>
           </div>
         )}
         <button
@@ -66,30 +90,6 @@ const UserPage = () => {
           }}
         >
           {isDepugMenuOpen ? '↑' : '↓'}
-        </button>
-      </div>
-      <div>
-        <input type="text" id="recipientNameInput" />
-        <button
-          onClick={() => {
-            const inputElement = document.getElementById(
-              'recipientNameInput'
-            ) as HTMLInputElement | null
-            if (!inputElement) {
-              return
-            }
-            const recipientName = inputElement.value
-            appDB
-              .addContact(recipientName)
-              .then(() => {
-                inputElement.value = ''
-              })
-              .catch((error: unknown) => {
-                console.error(error)
-              })
-          }}
-        >
-          Add contact
         </button>
       </div>
       <div className={styles.container}>

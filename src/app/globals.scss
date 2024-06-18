@@ -187,6 +187,9 @@
   --ds-pink-800: hsla(var(--ds-pink-800-value), 1);
   --ds-pink-900: hsla(var(--ds-pink-900-value), 1);
   --ds-pink-1000: hsla(var(--ds-pink-1000-value), 1);
+  --border-color: var(--ds-gray-400);
+  --border-color-hover: var(--ds-gray-500);
+  --border-color-active: var(--ds-gray-600);
 }
 
 * {
@@ -201,6 +204,10 @@ body {
   display: flex;
   flex-direction: column;
   margin: 0 auto;
+
+  * {
+    color: var(--ds-gray-1000);
+  }
 }
 
 main {

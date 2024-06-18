@@ -11,6 +11,10 @@
   svg {
     transition: all 0.2s ease-in-out;
     transform: translateX(0px);
+
+    path {
+      fill: var(--ds-gray-1000);
+    }
   }
 
   &:hover {
@@ -26,5 +30,19 @@
 
 .secondary {
   composes: common;
-  color: white;
+  color: var(--ds-background-100);
+}
+
+.noStyle {
+  appearance: none;
+  -webkit-appearance: none;
+  border-radius: 0;
+  text-align: inherit;
+  background: none;
+  box-shadow: none;
+  padding: 0;
+  cursor: pointer;
+  border: none;
+  color: inherit;
+  font: inherit;
 }

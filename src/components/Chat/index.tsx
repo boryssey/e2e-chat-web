@@ -1,8 +1,10 @@
 import AppDB, { Contact, Message } from '@/utils/db'
 import { useLiveQuery } from 'dexie-react-hooks'
 import styles from './chat.module.scss'
-import { FormEvent, useCallback, useMemo, useState } from 'react'
+import { FormEvent, Fragment, useCallback, useMemo, useState } from 'react'
 import { DateTime } from 'luxon'
+import Input from '../Input'
+import ChatHeader from './ChatHeader'
 
 interface ChatProps {
   appDB: AppDB
@@ -38,7 +40,6 @@ const Chat = ({ appDB, contact, onSendMessage }: ChatProps) => {
       }
       grouped.get(formattedDate)?.push(message)
     })
-    console.log(grouped.entries(), 'grouped entries')
     return grouped
   }, [messages])
 
@@ -53,62 +54,67 @@ const Chat = ({ appDB, contact, onSendMessage }: ChatProps) => {
     },
     [contact, messageText, onSendMessage]
   )
-
-  if (!contact) {
-    return <div className={styles.emptyContainer}>No contact selected</div>
-  }
-
   return (
     <div className={styles.container}>
-      <div className={styles.messageContainer}>
-        {Array.from(messagesGroupedByDate).map(([date, messages]) => {
-          const dateObj = DateTime.fromISO(date)
-          return (
-            <>
-              <time dateTime={date} className={styles.date}>
-                {dateObj >= yesterdayDate
-                  ? dateObj.setLocale('en-US').toRelativeCalendar()
-                  : date}
-              </time>
-              {messages.map((message) => {
-                const dateTime = DateTime.fromMillis(message.timestamp)
-                return (
-                  <div
-                    className={
-                      message.isFromMe ? styles.myMessage : styles.message
-                    }
-                    key={message.id}
-                  >
-                    {message.message}
-                    <time
-                      dateTime={dateTime.isValid ? dateTime.toISO() : undefined}
-                    >
-                      {dateTime.toLocaleString({
-                        hour: 'numeric',
-                        minute: 'numeric',
-                      })}
-                    </time>
-                  </div>
-                )
-              })}
-            </>
-          )
-        })}
-      </div>
-      <form
-        className={styles.inputContainer}
-        onSubmit={(e) => {
-          handleSendMessage(e)
-        }}
-      >
-        <input
-          value={messageText}
-          onChange={(e) => {
-            setMessageText(e.target.value)
-          }}
-        />
-        <button type="submit">Send</button>
-      </form>
+      {!contact ? (
+        <div className={styles.emptyContainer}>No contact selected</div>
+      ) : (
+        <>
+          <ChatHeader contact={contact} />
+          <div className={styles.messageContainer}>
+            {Array.from(messagesGroupedByDate).map(([date, messages]) => {
+              const dateObj = DateTime.fromISO(date)
+              return (
+                <Fragment key={`${dateObj.toISO()}`}>
+                  <time dateTime={date} className={styles.dateMessage}>
+                    {dateObj >= yesterdayDate
+                      ? dateObj.setLocale('en-US').toRelativeCalendar()
+                      : date}
+                  </time>
+                  {messages.map((message) => {
+                    const dateTime = DateTime.fromMillis(message.timestamp)
+                    return (
+                      <div
+                        className={
+                          message.isFromMe ? styles.myMessage : styles.message
+                        }
+                        key={message.id}
+                      >
+                        {message.message}
+                        <time
+                          dateTime={
+                            dateTime.isValid ? dateTime.toISO() : undefined
+                          }
+                        >
+                          {dateTime.toLocaleString({
+                            hour: 'numeric',
+                            minute: 'numeric',
+                          })}
+                        </time>
+                      </div>
+                    )
+                  })}
+                </Fragment>
+              )
+            })}
+          </div>
+          <form
+            className={styles.inputContainer}
+            onSubmit={(e) => {
+              handleSendMessage(e)
+            }}
+          >
+            <Input
+              type="text"
+              value={messageText}
+              onChange={(e) => {
+                setMessageText(e.target.value)
+              }}
+            />
+            <button type="submit">Send</button>
+          </form>
+        </>
+      )}
     </div>
   )
 }

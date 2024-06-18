@@ -20,15 +20,30 @@ const Arrow = () => {
   )
 }
 
+type ButtonProps = (
+  | {
+      withArrow?: boolean
+      color?: 'primary' | 'secondary'
+      empty?: false
+    }
+  | { empty: true; withArrow?: never; color?: never }
+) &
+  DetailedHTMLProps<ButtonHTMLAttributes<HTMLButtonElement>, HTMLButtonElement>
+
 const Button = ({
   children,
-  withArrow = false,
+  empty = false,
+  withArrow,
   color = 'primary',
   ...props
-}: { withArrow?: boolean; color?: 'primary' | 'secondary' } & DetailedHTMLProps<
-  ButtonHTMLAttributes<HTMLButtonElement>,
-  HTMLButtonElement
->) => {
+}: ButtonProps) => {
+  if (empty) {
+    return (
+      <button className={styles.noStyle} {...props}>
+        {children}
+      </button>
+    )
+  }
   return (
     <button className={styles[color]} {...props}>
       {children} {withArrow && <Arrow />}

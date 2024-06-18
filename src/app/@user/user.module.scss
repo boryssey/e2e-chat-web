@@ -13,10 +13,12 @@
 .debugButton {
   width: 100%;
   padding: 4px;
-  background-color: var(--ds-gray-700);
+  background-color: var(--ds-gray-100);
+  color: var(--ds-gray-900);
+  cursor: pointer;
   border: none;
 
   &:hover {
-    background-color: var(--ds-gray-800);
+    background-color: var(--ds-gray-200);
   }
 }

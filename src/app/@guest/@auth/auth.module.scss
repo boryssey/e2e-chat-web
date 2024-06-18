@@ -40,10 +40,13 @@
   a {
     font-size: 16px;
     font-weight: 300;
-    opacity: 0.5;
-    color: black;
+    color: var(--ds-gray-900);
     text-decoration: underline;
     align-self: flex-start;
+
+    &:hover {
+      color: var(--ds-gray-1000);
+    }
   }
 }
 
@@ -53,12 +56,12 @@
   align-items: center;
   gap: 8px;
   font-size: 16px;
-  color: red;
+  color: var(--ds-red-700);
 
   p {
     margin: 0;
     padding: 0;
-    color: red;
+    color: var(--ds-red-700);
   }
 }
 
