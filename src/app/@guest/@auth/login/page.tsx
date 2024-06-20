@@ -1,10 +1,11 @@
 'use client'
 import Button from '@/components/Button'
 import Input from '@/components/Input'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useForm, SubmitHandler } from 'react-hook-form'
 import styles from '../auth.module.scss'
 import { useCallback, useState } from 'react'
+import VerticalNavLink from '@/components/VerticalNavLink'
 
 interface Inputs {
   username: string
@@ -13,6 +14,8 @@ interface Inputs {
 
 export default function LoginPage() {
   const router = useRouter()
+  const hasOpenParam = useSearchParams().has('open')
+
   const [loginError, setLoginError] = useState<string | null>(null)
   const {
     register,
@@ -51,8 +54,16 @@ export default function LoginPage() {
 
   return (
     <>
-      <h1>LOGIN</h1>
-      <form onSubmit={handleSubmit(onLogin)} id="loginForm">
+      <VerticalNavLink href={'/login'} reverse>
+        ↑ ABOUT
+      </VerticalNavLink>
+
+      <h1>Sign in</h1>
+      <form
+        className={hasOpenParam ? 'open' : ''}
+        onSubmit={handleSubmit(onLogin)}
+        id="loginForm"
+      >
         <Input
           {...register('username', {
             required: { value: true, message: 'Username is required' },
@@ -79,9 +90,9 @@ export default function LoginPage() {
         </div>
       )}
       <div className={styles.actionWrapper}>
-        <a href="/register">Register instead</a>
+        <a href="/register">Sign up instead</a>
         <Button form="loginForm" withArrow>
-          LOGIN
+          <b>SIGN IN</b>
         </Button>
       </div>
     </>

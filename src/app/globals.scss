@@ -190,6 +190,9 @@
   --border-color: var(--ds-gray-400);
   --border-color-hover: var(--ds-gray-500);
   --border-color-active: var(--ds-gray-600);
+
+  --tablet-width: 1024px;
+  --mobile-width: 768px;
 }
 
 * {
@@ -469,5 +472,32 @@ summary {
   display: list-item;
 }
 
-:global {
+.verticalNavLink {
+  height: 100%;
+  // width: 20px;
+  padding: 4px;
+  color: var(--ds-gray-1000);
+  z-index: 1;
+  text-align: center;
+  writing-mode: vertical-rl;
+  border-width: 0px 1px;
+  border-style: solid;
+  border-color: var(--border-color);
+
+  &:hover {
+    border-color: var(--border-color-hover);
+  }
+
+  &.reverse {
+    transform: rotate(180deg);
+  }
+
+  &.secondary {
+    color: var(--ds-background-100);
+    border-color: var((--ds-gray-400));
+
+    &:hover {
+      border-color: var(--ds-gray-500);
+    }
+  }
 }

@@ -1,8 +1,51 @@
 .container {
   display: flex;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
   background-color: var(--ds-gray-1000);
   height: 100%;
   width: 100%;
+  overflow-y: auto;
+  color: var(--ds-background-100);
+  position: relative;
+
+  * {
+    color: var(--ds-background-100);
+  }
+
+  :global(.verticalNavLink) {
+    position: absolute;
+    top: 0;
+    right: 0;
+  }
+}
+
+.infoContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+
+  margin: 100px;
+
+  h1 {
+    font-size: 48px;
+    font-weight: 700;
+    font-weight: var(--font-medium);
+  }
+
+  h2 {
+    font-size: 32px;
+    font-weight: var(--font-medium);
+  }
+
+  p {
+    font-size: 18px;
+    font-weight: var(--font-light);
+  }
+
+  div {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
 }

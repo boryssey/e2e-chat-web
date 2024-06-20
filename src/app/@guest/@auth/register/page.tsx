@@ -4,7 +4,8 @@ import Input from '@/components/Input'
 import { useForm, SubmitHandler } from 'react-hook-form'
 import styles from '../auth.module.scss'
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
+import VerticalNavLink from '@/components/VerticalNavLink'
 
 interface Inputs {
   username: string
@@ -14,6 +15,8 @@ interface Inputs {
 
 export default function LoginPage() {
   const [registerError, setRegisterError] = useState<string | null>(null)
+  const hasOpenParam = useSearchParams().has('open')
+
   const router = useRouter()
 
   const {
@@ -46,8 +49,16 @@ export default function LoginPage() {
 
   return (
     <>
-      <h1>CREATE ACCOUNT</h1>
-      <form onSubmit={handleSubmit(onRegister)} id="loginForm">
+      <VerticalNavLink href={'/register'} reverse>
+        ↑ ABOUT
+      </VerticalNavLink>
+
+      <h1>Sign up</h1>
+      <form
+        className={hasOpenParam ? 'open' : ''}
+        onSubmit={handleSubmit(onRegister)}
+        id="loginForm"
+      >
         <Input
           {...register('username', {
             required: { value: true, message: 'Username is required' },

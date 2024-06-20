@@ -11,7 +11,8 @@ const GuestLayout = ({
   console.log('guest layout called')
   return (
     <div className={styles.container}>
-      {landing} {auth}
+      {landing}
+      {auth}
     </div>
   )
 }

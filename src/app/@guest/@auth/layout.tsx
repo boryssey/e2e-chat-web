@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import styles from './auth.module.scss'
 import { cookies } from 'next/headers'
 import { User } from '@/context/AuthContext'
+import { LayoutProps } from '../../../../.next/types/app/layout'
 
 const getUserInfo = async () => {
   const cookieStore = cookies()
@@ -18,11 +19,7 @@ const getUserInfo = async () => {
   return null
 }
 
-export default async function AuthLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode
-}>) {
+export default async function AuthLayout({ children }: LayoutProps) {
   const user = await getUserInfo()
 
   if (user) {
