@@ -1,12 +1,10 @@
-import VerticalNavLink from '@/components/VerticalNavLink'
 import styles from './landing.module.scss'
+import NavLink from './NavLInk'
 // arrow up symbol: ↑
 export default function LandingPage() {
   return (
     <div className={styles.container}>
-      <VerticalNavLink secondary href={'?open'}>
-        ↑ LOGIN
-      </VerticalNavLink>
+      <NavLink />
 
       <div className={styles.infoContainer}>
         <h1>E2E Chat</h1>

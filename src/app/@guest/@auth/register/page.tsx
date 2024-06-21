@@ -5,7 +5,8 @@ import { useForm, SubmitHandler } from 'react-hook-form'
 import styles from '../auth.module.scss'
 import { useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import VerticalNavLink from '@/components/VerticalNavLink'
+import VerticalNavLink from '@/components/VerticalNavigationButton'
+import Link from 'next/link'
 
 interface Inputs {
   username: string
@@ -49,9 +50,11 @@ export default function LoginPage() {
 
   return (
     <>
-      <VerticalNavLink href={'/register'} reverse>
-        ↑ ABOUT
-      </VerticalNavLink>
+      {hasOpenParam && (
+        <VerticalNavLink asLink href={'/register'} reverse>
+          ↑ ABOUT
+        </VerticalNavLink>
+      )}
 
       <h1>Sign up</h1>
       <form
@@ -126,9 +129,11 @@ export default function LoginPage() {
         </div>
       )}
       <div className={styles.actionWrapper}>
-        <a href="/login">Login instead</a>
+        <Link href={`/login${hasOpenParam ? '?open' : ''}`}>
+          Sign in instead
+        </Link>
         <Button form="loginForm" withArrow>
-          REGISTER
+          SIGN UP
         </Button>
       </div>
     </>

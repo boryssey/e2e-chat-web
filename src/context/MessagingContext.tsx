@@ -81,7 +81,6 @@ export const getRemoteKeyBundle = async (username: string) => {
     identityKey: Uint8Array.from(data.key_bundles.identity_pub_key.data)
       .buffer as ArrayBuffer,
   }
-  console.log(transformedBundle, 'transformedBundle')
   return transformedBundle
 }
 

@@ -220,7 +220,7 @@ main {
 //media max-width 768px
 @media (max-width: 768px) {
   body {
-    padding: 16px;
+    // padding: 16px;
   }
 }
 
@@ -483,6 +483,7 @@ summary {
   border-width: 0px 1px;
   border-style: solid;
   border-color: var(--border-color);
+  cursor: pointer;
 
   &:hover {
     border-color: var(--border-color-hover);
@@ -501,3 +502,7 @@ summary {
     }
   }
 }
+
+$tablet-width: 1024px;
+$mobile-width: 768px;
+$desktop-width: 1440px;

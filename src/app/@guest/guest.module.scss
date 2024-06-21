@@ -1,5 +1,5 @@
 :global(body):has(.container) {
-  height: 100vh;
+  min-height: 100vh;
 }
 
 .container {
@@ -9,7 +9,7 @@
   flex: 1;
   height: 100%;
   position: relative;
-  transition: 300ms;
+  transition: 100ms;
 
   :global(.verticalNavLink) {
     display: none;

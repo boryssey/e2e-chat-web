@@ -3,6 +3,7 @@
   min-height: 200px;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
 .emptyContainer {
@@ -11,6 +12,10 @@
   height: 100%;
   color: var(--ds-gray-900);
   background-color: var(--ds-background-200);
+}
+.scrollableContainer {
+  overflow: hidden;
+  height: 100%;
 }
 
 .messageContainer {
@@ -22,9 +27,12 @@
   flex: 1;
   justify-content: flex-end;
   background-color: var(--ds-background-200);
+  overflow-y: auto;
 }
 
 .message {
+  display: flex;
+  align-items: flex-end;
   align-self: flex-start;
   background-color: var(--ds-gray-100);
   padding: 6px 12px;
@@ -32,7 +40,7 @@
   border-radius: 8px;
   border: 1px solid var(--border-color);
   font-size: 16px;
-
+  max-width: 80%;
   time {
     padding-left: 12px;
     font-size: 10px;
@@ -45,8 +53,11 @@
   align-self: flex-end;
   text-align: end;
   background-color: var(--ds-blue-600);
-  color: var(--ds-background-100);
 
+  p {
+    text-align: left;
+    color: var(--ds-background-100);
+  }
   time {
     color: var(--ds-background-200);
   }

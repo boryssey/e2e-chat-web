@@ -44,7 +44,7 @@ const ContactList = ({
                 {date && (
                   <span>
                     {DateTime.now().hasSame(date, 'day')
-                      ? date.toFormat('HH-ss')
+                      ? date.toFormat('HH:ss')
                       : date.toFormat('ccc').toLowerCase()}
                   </span>
                 )}

@@ -17,10 +17,12 @@ import { Contact } from '@/utils/db'
 import ContactList from '@/components/ContactList'
 import Chat from '@/components/Chat'
 import styles from './user.module.scss'
+import classNames from 'classnames'
+import VerticalNavigationButton from '@/components/VerticalNavigationButton'
 
 const UserPage = () => {
   const router = useRouter()
-
+  const [isChatOpen, setIsChatOpen] = useState(false)
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null)
   const { logout } = useAuthContext()
   const { signalStore, appDB, contacts } = useDbContext()
@@ -46,6 +48,19 @@ const UserPage = () => {
     await socket.emitWithAck('keyBundle:save', keyBundle)
   }, [signalStore])
   // arrow up
+
+  const containerClassName = classNames({
+    [styles.container]: !isChatOpen,
+    [styles.containerChatOpen]: isChatOpen,
+  })
+
+  const handleNavButtonClick = () => {
+    setIsChatOpen(!isChatOpen)
+    if (isChatOpen) {
+      setSelectedContact(null)
+    }
+  }
+
   return (
     <main className={styles.mainContainer}>
       <div>
@@ -92,15 +107,27 @@ const UserPage = () => {
           {isDepugMenuOpen ? '↑' : '↓'}
         </button>
       </div>
-      <div className={styles.container}>
+      <div className={containerClassName}>
         {contacts && (
           <>
+            {selectedContact && (
+              <VerticalNavigationButton
+                onClick={handleNavButtonClick}
+                reverse={isChatOpen}
+              >
+                {isChatOpen ? '↑ CONTACTS ' : '↑ CHAT'}
+              </VerticalNavigationButton>
+            )}
             <ContactList
               selectedContact={selectedContact}
-              setSelectedContact={setSelectedContact}
+              setSelectedContact={(contact: Contact | null) => {
+                if (contact) {
+                  setIsChatOpen(true)
+                }
+                setSelectedContact(contact)
+              }}
               contacts={contacts}
             />
-
             <Chat
               appDB={appDB}
               onSendMessage={sendMessage}

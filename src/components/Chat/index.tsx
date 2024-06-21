@@ -61,42 +61,44 @@ const Chat = ({ appDB, contact, onSendMessage }: ChatProps) => {
       ) : (
         <>
           <ChatHeader contact={contact} />
-          <div className={styles.messageContainer}>
-            {Array.from(messagesGroupedByDate).map(([date, messages]) => {
-              const dateObj = DateTime.fromISO(date)
-              return (
-                <Fragment key={`${dateObj.toISO()}`}>
-                  <time dateTime={date} className={styles.dateMessage}>
-                    {dateObj >= yesterdayDate
-                      ? dateObj.setLocale('en-US').toRelativeCalendar()
-                      : date}
-                  </time>
-                  {messages.map((message) => {
-                    const dateTime = DateTime.fromMillis(message.timestamp)
-                    return (
-                      <div
-                        className={
-                          message.isFromMe ? styles.myMessage : styles.message
-                        }
-                        key={message.id}
-                      >
-                        {message.message}
-                        <time
-                          dateTime={
-                            dateTime.isValid ? dateTime.toISO() : undefined
+          <div className={styles.scrollableContainer}>
+            <div className={styles.messageContainer}>
+              {Array.from(messagesGroupedByDate).map(([date, messages]) => {
+                const dateObj = DateTime.fromISO(date)
+                return (
+                  <Fragment key={`${dateObj.toISO()}`}>
+                    <time dateTime={date} className={styles.dateMessage}>
+                      {dateObj >= yesterdayDate
+                        ? dateObj.setLocale('en-US').toRelativeCalendar()
+                        : date}
+                    </time>
+                    {messages.map((message) => {
+                      const dateTime = DateTime.fromMillis(message.timestamp)
+                      return (
+                        <div
+                          className={
+                            message.isFromMe ? styles.myMessage : styles.message
                           }
+                          key={message.id}
                         >
-                          {dateTime.toLocaleString({
-                            hour: 'numeric',
-                            minute: 'numeric',
-                          })}
-                        </time>
-                      </div>
-                    )
-                  })}
-                </Fragment>
-              )
-            })}
+                          <p>{message.message}</p>
+                          <time
+                            dateTime={
+                              dateTime.isValid ? dateTime.toISO() : undefined
+                            }
+                          >
+                            {dateTime.toLocaleString({
+                              hour: 'numeric',
+                              minute: 'numeric',
+                            })}
+                          </time>
+                        </div>
+                      )
+                    })}
+                  </Fragment>
+                )
+              })}
+            </div>
           </div>
           <form
             className={styles.inputContainer}

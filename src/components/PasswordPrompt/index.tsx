@@ -43,8 +43,9 @@ const PasswordPrompt = ({
 
   return (
     <main className={styles.container}>
+      <label>{promptLabel}</label>
+
       <form onSubmit={handleSubmit(onFormSubmit)} id="passwordPromptForm">
-        <p>{promptLabel}</p>
         <Input
           color="secondary"
           type="password"
@@ -101,17 +102,18 @@ const PasswordPrompt = ({
             id="passwordConfirmation"
           />
         )}
-        {Object.values(errors).length > 0 && (
-          <div className={styles.errorWrapper}>
-            {Object.values(errors).map((error, index) => (
-              <p key={index}>{error.message}</p>
-            ))}
-          </div>
-        )}
+
+        <Button form="passwordPromptForm" color="secondary">
+          Submit
+        </Button>
       </form>
-      <Button form="passwordPromptForm" color="secondary">
-        Submit
-      </Button>
+      {Object.values(errors).length > 0 && (
+        <div className={styles.errorWrapper}>
+          {Object.values(errors).map((error, index) => (
+            <p key={index}>{error.message}</p>
+          ))}
+        </div>
+      )}
     </main>
   )
 }
