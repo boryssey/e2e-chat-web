@@ -14,7 +14,7 @@
   background-color: var(--ds-background-200);
 }
 .scrollableContainer {
-  overflow: hidden;
+  overflow-y: auto;
   height: 100%;
 }
 
@@ -27,7 +27,6 @@
   flex: 1;
   justify-content: flex-end;
   background-color: var(--ds-background-200);
-  overflow-y: auto;
 }
 
 .message {
