@@ -25,6 +25,7 @@ const Chat = ({ appDB, contact, onSendMessage }: ChatProps) => {
         ? appDB.messages
             .where('contactId')
             .equals(contact.id!)
+            .reverse()
             .sortBy('timestamp')
         : [],
     [contact?.id]
@@ -61,27 +62,22 @@ const Chat = ({ appDB, contact, onSendMessage }: ChatProps) => {
       ) : (
         <>
           <ChatHeader contact={contact} />
-          <div className={styles.scrollableContainer}>
-            <div className={styles.messageContainer}>
-              {Array.from(messagesGroupedByDate).map(([date, messages]) => {
-                const dateObj = DateTime.fromISO(date)
-                return (
-                  <Fragment key={`${dateObj.toISO()}`}>
-                    <time dateTime={date} className={styles.dateMessage}>
-                      {dateObj >= yesterdayDate
-                        ? dateObj.setLocale('en-US').toRelativeCalendar()
-                        : date}
-                    </time>
-                    {messages.map((message) => {
-                      const dateTime = DateTime.fromMillis(message.timestamp)
-                      return (
-                        <div
-                          className={
-                            message.isFromMe ? styles.myMessage : styles.message
-                          }
-                          key={message.id}
-                        >
-                          <p>{message.message}</p>
+          <div className={styles.messageContainer}>
+            {Array.from(messagesGroupedByDate).map(([date, messages]) => {
+              const dateObj = DateTime.fromISO(date)
+              return (
+                <Fragment key={`${dateObj.toISO()}`}>
+                  {messages.map((message) => {
+                    const dateTime = DateTime.fromMillis(message.timestamp)
+                    return (
+                      <div
+                        className={
+                          message.isFromMe ? styles.myMessage : styles.message
+                        }
+                        key={message.id}
+                      >
+                        {message.message}
+                        <span dir="ltr">
                           <time
                             dateTime={
                               dateTime.isValid ? dateTime.toISO() : undefined
@@ -92,13 +88,18 @@ const Chat = ({ appDB, contact, onSendMessage }: ChatProps) => {
                               minute: 'numeric',
                             })}
                           </time>
-                        </div>
-                      )
-                    })}
-                  </Fragment>
-                )
-              })}
-            </div>
+                        </span>
+                      </div>
+                    )
+                  })}
+                  <time dateTime={date} className={styles.dateMessage}>
+                    {dateObj >= yesterdayDate
+                      ? dateObj.setLocale('en-US').toRelativeCalendar()
+                      : date}
+                  </time>
+                </Fragment>
+              )
+            })}
           </div>
           <form
             className={styles.inputContainer}
