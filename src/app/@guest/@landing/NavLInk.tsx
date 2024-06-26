@@ -8,7 +8,7 @@ export default function NavLink() {
     return null
   }
   return (
-    <VerticalNavLink secondary href={'?open'}>
+    <VerticalNavLink asLink secondary href={'?open'}>
       ↑ LOGIN
     </VerticalNavLink>
   )
