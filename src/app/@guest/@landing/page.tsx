@@ -36,7 +36,7 @@ export default function LandingPage() {
           <p>
             <b>Easy to Use</b>: Our intuitive interface makes secure
             communication simple. No technical knowledge required—just start
-            chatting! Instant
+            chatting!
           </p>
           <p>
             <b>Instant Setup</b>: Get started in seconds. No lengthy sign-up
