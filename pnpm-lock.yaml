@@ -29,6 +29,9 @@ importers:
       dexie:
         specifier: ^3.2.7
         version: 3.2.7
+      dexie-export-import:
+        specifier: ^4.1.2
+        version: 4.1.2(dexie@3.2.7)
       dexie-react-hooks:
         specifier: ^1.1.7
         version: 1.1.7(@types/react@18.2.75)(dexie@3.2.7)(react@19.0.0-rc-935180c7e0-20240524)
@@ -761,6 +764,11 @@ packages:
   detect-libc@2.0.3:
     resolution: {integrity: sha512-bwy0MGW55bG41VqxxypOsdSdGqLwXPI/focwgTYCFMbdUiBAxLg9CFzG08sz2aqzknwiX7Hkl0bQENjg8iLByw==}
     engines: {node: '>=8'}
+
+  dexie-export-import@4.1.2:
+    resolution: {integrity: sha512-dWIkkajX+CsEJ19xMnvyqUDlldIl7jW/G49hy3pXZeIgCei9fPeGSjteoh7BeTujexIM3XZ+uAGCEwgCx2HAsQ==}
+    peerDependencies:
+      dexie: ^2.0.4 || ^3.0.0 || ^4.0.1-alpha.5
 
   dexie-react-hooks@1.1.7:
     resolution: {integrity: sha512-Lwv5W0Hk+uOW3kGnsU9GZoR1er1B7WQ5DSdonoNG+focTNeJbHW6vi6nBoX534VKI3/uwHebYzSw1fwY6a7mTw==}
@@ -2512,6 +2520,10 @@ snapshots:
 
   detect-libc@2.0.3:
     optional: true
+
+  dexie-export-import@4.1.2(dexie@3.2.7):
+    dependencies:
+      dexie: 3.2.7
 
   dexie-react-hooks@1.1.7(@types/react@18.2.75)(dexie@3.2.7)(react@19.0.0-rc-935180c7e0-20240524):
     dependencies:

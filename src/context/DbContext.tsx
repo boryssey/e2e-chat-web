@@ -5,11 +5,14 @@ import { encode as encodeBase64 } from '@stablelib/base64'
 import PasswordPrompt from '@/components/PasswordPrompt'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { socket } from '@/utils/socket'
+import { useAuthContext } from './AuthContext'
+import Dexie from 'dexie'
 
 interface IDbContext {
   status: StatusType
   appDB: AppDB
   signalStore: SignalProtocolIndexDBStore
+  exportDb: () => Promise<Blob>
   contacts: (Contact & { lastMessage: Message | undefined })[] | undefined
 }
 
@@ -53,6 +56,7 @@ const DbContextProvider = ({ children }: { children: React.ReactNode }) => {
   const [signalStore, setSignalStore] =
     useState<SignalProtocolIndexDBStore | null>(null)
   const [status, setStatus] = useState<StatusType | null>(null)
+  const { user } = useAuthContext()
   const contacts = useLiveQuery(
     () => (appDB ? contactsWithLastMessage(appDB) : []),
     [status]
@@ -60,7 +64,7 @@ const DbContextProvider = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     const init = async () => {
-      const isAppDBInitialized = await AppDB.appDBExists()
+      const isAppDBInitialized = await AppDB.appDBExists(user.id)
       if (!isAppDBInitialized) {
         setStatus('unregistered')
         return
@@ -68,11 +72,23 @@ const DbContextProvider = ({ children }: { children: React.ReactNode }) => {
       setStatus('unauthenticated')
     }
     void init()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  const exportDb = async () => {
+    const newAppDB = await new Dexie(`${AppDB.dbName}-${user.id}`).open()
+    const blob = await (
+      await import('dexie-export-import')
+    ).exportDB(newAppDB, {
+      prettyJson: true,
+    })
+    return blob
+  }
 
   const onInitDBs = async (password: string) => {
     const key = makeSecretKey(password) // TODO: use easy-web-crypto for creating a master password
-    const appDB = new AppDB(key)
+
+    const appDB = new AppDB(key, user.id)
     await appDB.open()
     const localSignalStore = new SignalProtocolIndexDBStore(appDB)
     const existingID = await localSignalStore.getID()
@@ -110,6 +126,7 @@ const DbContextProvider = ({ children }: { children: React.ReactNode }) => {
           status: status,
           appDB: appDB,
           signalStore: signalStore,
+          exportDb,
           contacts,
         }}
       >

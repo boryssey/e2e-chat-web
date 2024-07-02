@@ -25,7 +25,7 @@ const UserPage = () => {
   const [isChatOpen, setIsChatOpen] = useState(false)
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null)
   const { logout } = useAuthContext()
-  const { signalStore, appDB, contacts } = useDbContext()
+  const { signalStore, appDB, exportDb, contacts } = useDbContext()
   const [isDepugMenuOpen, setIsDebugMenuOpen] = useState(false)
 
   const { socketState, sendMessage } = useMessagingContext()
@@ -70,6 +70,22 @@ const UserPage = () => {
             <button onClick={() => getRemoteKeyBundle('boryss')}>
               testRemote
             </button>
+            <a
+              onClick={async () => {
+                if (typeof window === 'undefined') {
+                  return
+                }
+                const blob = await exportDb()
+                const url = URL.createObjectURL(blob)
+                const a = document.createElement('a')
+                a.href = url
+                a.download = 'db.json'
+                document.body.appendChild(a)
+                a.click()
+              }}
+            >
+              export db
+            </a>
             <button onClick={() => testSaveKeyBundle()}>testLocal</button>
             <p>Status: {socketState}</p>
             <div>

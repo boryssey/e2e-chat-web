@@ -46,9 +46,9 @@ export default class AppDB extends Dexie {
   contacts!: Dexie.Table<Contact, string>
   signalStoreItems!: Dexie.Table<SignalStoreItem, string>
 
-  private static dbName = 'MessageStore'
-  constructor(secret: string) {
-    super(AppDB.dbName)
+  static dbName = 'MessageStore'
+  constructor(secret: string, userId: string | number) {
+    super(`${AppDB.dbName}-${userId}`)
     encrypted(this, { secretKey: secret })
     this.version(3).stores({
       messages: '#id, $timestamp, contactId, $message, isFromMe',
@@ -57,8 +57,8 @@ export default class AppDB extends Dexie {
     })
   }
 
-  public static async appDBExists() {
-    return Dexie.exists(AppDB.dbName)
+  public static async appDBExists(userId: string | number) {
+    return Dexie.exists(`${AppDB.dbName}-${userId}`)
   }
 
   public async getContactByName(name: string) {
