@@ -4,7 +4,7 @@ import Input from '@/components/Input'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useForm, SubmitHandler } from 'react-hook-form'
 import styles from '../auth.module.scss'
-import { useCallback, useState } from 'react'
+import { useCallback } from 'react'
 import VerticalNavLink from '@/components/VerticalNavigationButton'
 import Link from 'next/link'
 
@@ -16,11 +16,10 @@ interface Inputs {
 export default function LoginPage() {
   const router = useRouter()
   const hasOpenParam = useSearchParams().has('open')
-
-  const [loginError, setLoginError] = useState<string | null>(null)
   const {
     register,
     handleSubmit,
+    setError,
     formState: { errors },
   } = useForm<Inputs>()
 
@@ -40,17 +39,33 @@ export default function LoginPage() {
       )
 
       if (!res.ok) {
-        const error = (await res.json()) as { message: string }
+        console.log(res.status, res.statusText, 'test error')
+        const error = (await res.json()) as unknown
+
         console.error(error, 'error')
-        setLoginError(error.message)
+        if (
+          error &&
+          typeof error === 'object' &&
+          'message' in error &&
+          typeof error.message === 'string'
+        ) {
+          setError('password', {
+            type: 'server_error',
+            message: error.message,
+          })
+        } else {
+          setError('password', {
+            type: 'server_error',
+            message: res.statusText,
+          })
+        }
+
         return
       }
-
-      console.log(res, 'res success')
       router.push('/')
       router.refresh()
     },
-    [router]
+    [router, setError]
   )
 
   return (
@@ -86,7 +101,6 @@ export default function LoginPage() {
       </form>
       {Object.values(errors).length > 0 && (
         <div className={styles.errorWrapper}>
-          {loginError && <p>{loginError}</p>}
           {Object.values(errors).map((error, index) => (
             <p key={index}>{error.message}</p>
           ))}

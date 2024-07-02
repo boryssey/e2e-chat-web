@@ -3,7 +3,6 @@ import Button from '@/components/Button'
 import Input from '@/components/Input'
 import { useForm, SubmitHandler } from 'react-hook-form'
 import styles from '../auth.module.scss'
-import { useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import VerticalNavLink from '@/components/VerticalNavigationButton'
 import Link from 'next/link'
@@ -15,7 +14,6 @@ interface Inputs {
 }
 
 export default function LoginPage() {
-  const [registerError, setRegisterError] = useState<string | null>(null)
   const hasOpenParam = useSearchParams().has('open')
 
   const router = useRouter()
@@ -24,6 +22,7 @@ export default function LoginPage() {
     register,
     watch,
     handleSubmit,
+    setError,
     formState: { errors },
   } = useForm<Inputs>()
 
@@ -40,14 +39,35 @@ export default function LoginPage() {
       }
     )
     if (!res.ok) {
-      const error = (await res.json()) as { message: string }
-      setRegisterError(error.message)
+      console.log(res.status, res.statusText, 'test error')
+      const error = (await res.json()) as unknown
+
+      console.error(error, 'error')
+      if (
+        error &&
+        typeof error === 'object' &&
+        'message' in error &&
+        typeof error.message === 'string'
+      ) {
+        console.log('should set error', {
+          type: res.status.toString(),
+          message: error.message,
+        })
+        setError('username', {
+          type: 'server_error',
+          message: error.message,
+        })
+      } else {
+        setError('username', {
+          type: 'server_error',
+          message: res.statusText,
+        })
+      }
       return
     }
-    setRegisterError(null)
     router.push('/')
   }
-
+  console.log(errors, 'errors')
   return (
     <>
       {hasOpenParam && (
@@ -122,7 +142,6 @@ export default function LoginPage() {
       </form>
       {Object.values(errors).length > 0 && (
         <div className={styles.errorWrapper}>
-          {registerError && <p>{registerError}</p>}
           {Object.values(errors).map((error, index) => (
             <p key={index}>{error.message}</p>
           ))}

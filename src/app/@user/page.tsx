@@ -62,8 +62,8 @@ const UserPage = () => {
   }
 
   return (
-    <main className={styles.mainContainer}>
-      <div>
+    <>
+      <header>
         {isDepugMenuOpen && (
           <div>
             <button onClick={() => logoutHandler()}>Logout</button>
@@ -106,8 +106,8 @@ const UserPage = () => {
         >
           {isDepugMenuOpen ? '↑' : '↓'}
         </button>
-      </div>
-      <div className={containerClassName}>
+      </header>
+      <main className={containerClassName}>
         {contacts && (
           <>
             {selectedContact && (
@@ -135,8 +135,8 @@ const UserPage = () => {
             />
           </>
         )}
-      </div>
-    </main>
+      </main>
+    </>
   )
 }
 
