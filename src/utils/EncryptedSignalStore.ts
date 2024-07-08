@@ -360,16 +360,11 @@ export class SignalProtocolIndexDBStore implements StorageType {
     }
   }
 
-  async createFingerprintFor(localUsername: string, remoteUsername: string) {
-    const currentUserIdentifier = await this.getIdentityKeyPair()
+  async getRemoteIdentityKeyByUsername(remoteUsername: string) {
     const recipientAddress = new SignalProtocolAddress(remoteUsername, 1)
     const sessionWithRecipient = await this.loadSession(
       recipientAddress.toString()
     )
-    if (!currentUserIdentifier) {
-      console.warn('no current user identifier')
-      return null
-    }
     if (!sessionWithRecipient) {
       console.warn('no session with recipient')
       return null
@@ -380,12 +375,30 @@ export class SignalProtocolIndexDBStore implements StorageType {
       console.warn('no active session for user:', remoteUsername)
       return null
     }
+    return activeSession.indexInfo.remoteIdentityKey
+  }
+
+  async createFingerprintFor(localUsername: string, remoteUsername: string) {
+    const remoteIdentityKey =
+      await this.getRemoteIdentityKeyByUsername(remoteUsername)
+
+    if (!remoteIdentityKey) {
+      console.warn('no remote identity key')
+      return null
+    }
+
+    const currentUserIdentifier = await this.getIdentityKeyPair()
+    if (!currentUserIdentifier) {
+      console.warn('no current user identifier')
+      return null
+    }
+
     const fingerprintGenerator = new FingerprintGenerator(1024)
     const fingerPrint = await fingerprintGenerator.createFor(
       localUsername,
       currentUserIdentifier.pubKey,
       remoteUsername,
-      activeSession.indexInfo.remoteIdentityKey
+      remoteIdentityKey
     )
     return fingerPrint
   }
