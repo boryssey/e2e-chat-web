@@ -4,6 +4,7 @@ import './globals.scss'
 import biotif from './font'
 import { cookies } from 'next/headers'
 import AuthProvider, { User } from '@/context/AuthContext'
+import { Analytics } from '@vercel/analytics/react'
 
 export const metadata: Metadata = {
   title: 'ChatE2E',
@@ -45,6 +46,7 @@ export default async function RootLayout({
         ) : (
           guest
         )}
+        <Analytics />
       </body>
     </html>
   )
