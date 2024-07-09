@@ -1,12 +1,17 @@
 'use client'
+import Modal, { ModalProvider } from '@/components/Modal'
 import DbContextProvider from '@/context/DbContext'
 import MessagingContextProvider from '@/context/MessagingContext'
 
 const UserLayout = ({ children }: { children: React.ReactNode }) => {
   return (
-    <DbContextProvider>
-      <MessagingContextProvider>{children}</MessagingContextProvider>
-    </DbContextProvider>
+    <ModalProvider>
+      <DbContextProvider>
+        <MessagingContextProvider>
+          {children} <Modal />
+        </MessagingContextProvider>
+      </DbContextProvider>
+    </ModalProvider>
   )
 }
 
