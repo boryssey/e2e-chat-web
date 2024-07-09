@@ -214,6 +214,10 @@ export class SignalProtocolIndexDBStore implements StorageType {
     // return true;
   }
 
+  async deleteIdentity(identifier: string) {
+    return this.del('identifierKey:' + identifier)
+  }
+
   async saveIdentity(
     encodedAddress: string,
     publicKey: ArrayBuffer,
@@ -311,33 +315,33 @@ export class SignalProtocolIndexDBStore implements StorageType {
 
     const identityKeyPair = await KeyHelper.generateIdentityKeyPair()
     await this.saveIdentityKeyPair(identityKeyPair)
-
-    const baseKeyId = Math.floor(10000 * Math.random())
-    const preKey = await KeyHelper.generatePreKey(baseKeyId)
-    await this.storePreKey(`${baseKeyId}`, preKey.keyPair)
-
+    const preKeys = await Promise.all(
+      Array.from({ length: 100 }, async (_) => {
+        const baseKeyId = Math.floor(10000 * Math.random())
+        const preKey = await KeyHelper.generatePreKey(baseKeyId)
+        await this.storePreKey(`${baseKeyId}`, preKey.keyPair)
+        return preKey
+      })
+    )
     const signedPreKeyId = Math.floor(10000 * Math.random())
     const signedPreKey = await KeyHelper.generateSignedPreKey(
       identityKeyPair,
       signedPreKeyId
     )
-    await this.storeSignedPreKey(signedPreKeyId, signedPreKey.keyPair)
     const publicSignedPreKey: SignedPublicPreKeyType = {
       keyId: signedPreKeyId,
       publicKey: signedPreKey.keyPair.pubKey,
       signature: signedPreKey.signature,
     }
 
-    const publicPreKey: PreKeyType = {
-      keyId: preKey.keyId,
-      publicKey: preKey.keyPair.pubKey,
-    }
-
     const preKeyBundle = {
       registrationId,
       identityPubKey: identityKeyPair.pubKey,
       signedPreKey: publicSignedPreKey,
-      oneTimePreKeys: [publicPreKey],
+      oneTimePreKeys: preKeys.map((preKey) => ({
+        keyId: preKey.keyId,
+        publicKey: preKey.keyPair.pubKey,
+      })),
     }
 
     return preKeyBundle
