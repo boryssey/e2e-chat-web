@@ -10,7 +10,7 @@ import Link from 'next/link'
 interface Inputs {
   username: string
   password: string
-  confirmPassword: string
+  'confirm-password': string
 }
 
 export default function LoginPage() {
@@ -39,30 +39,21 @@ export default function LoginPage() {
       }
     )
     if (!res.ok) {
-      console.log(res.status, res.statusText, 'test error')
       const error = (await res.json()) as unknown
 
       console.error(error, 'error')
-      if (
-        error &&
-        typeof error === 'object' &&
-        'message' in error &&
-        typeof error.message === 'string'
-      ) {
-        console.log('should set error', {
-          type: res.status.toString(),
-          message: error.message,
-        })
-        setError('username', {
-          type: 'server_error',
-          message: error.message,
-        })
-      } else {
-        setError('username', {
-          type: 'server_error',
-          message: res.statusText,
-        })
-      }
+
+      setError('username', {
+        type: 'server_error',
+        message:
+          error &&
+          typeof error === 'object' &&
+          'message' in error &&
+          typeof error.message === 'string'
+            ? error.message
+            : res.statusText,
+      })
+
       return
     }
     router.push('/')
@@ -123,19 +114,21 @@ export default function LoginPage() {
                 'Password must contain a special character',
             },
           })}
+          aria-label="password"
           name="password"
           placeholder="Password"
           type="password"
         />
         <Input
-          {...register('confirmPassword', {
+          {...register('confirm-password', {
             required: { value: true, message: 'Confirm Password is required' },
             validate: {
               value: (value) =>
                 value === watch('password') || 'Passwords do not match',
             },
           })}
-          name="confirmPassword"
+          aria-label="confirm password"
+          name="confirm-password"
           placeholder="Confirm Password"
           type="password"
         />

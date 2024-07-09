@@ -8,12 +8,13 @@ interface PasswordPromptProps {
   onSubmit: (password: string, withCreateID?: boolean) => void | Promise<void>
   promptLabel: string | React.ReactNode
   withConfirmation?: boolean
+  username: string
 }
 
 type Inputs<T> = T extends true
   ? {
       password: string
-      passwordConfirmation: string
+      'confirm-password': string
     }
   : {
       password: string
@@ -23,22 +24,33 @@ const PasswordPrompt = ({
   onSubmit,
   promptLabel,
   withConfirmation = false,
+  username,
 }: PasswordPromptProps) => {
   const [password, setPassword] = useState('')
   const {
     register,
     watch,
     handleSubmit,
+    setError,
     formState: { errors },
   } = useForm<Inputs<typeof withConfirmation>>()
 
-  const onFormSubmit: SubmitHandler<Inputs<typeof withConfirmation>> = (
+  const onFormSubmit: SubmitHandler<Inputs<typeof withConfirmation>> = async (
     data,
     event
   ) => {
     event?.preventDefault()
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    onSubmit(data.password, withConfirmation)
+    try {
+      await onSubmit(data.password, withConfirmation)
+    } catch (error) {
+      if (error instanceof Error) {
+        setError('password', {
+          type: 'manual',
+          message: error.message,
+        })
+      }
+      console.error(error)
+    }
   }
 
   return (
@@ -46,9 +58,20 @@ const PasswordPrompt = ({
       <label>{promptLabel}</label>
 
       <form onSubmit={handleSubmit(onFormSubmit)} id="passwordPromptForm">
+        <input
+          style={{ display: 'none' }}
+          autoComplete="username"
+          readOnly
+          name="username"
+          id="username"
+          aria-hidden="true"
+          aria-label="prefilled username"
+          value={`${username}-db`}
+        />
         <Input
           color="secondary"
           type="password"
+          aria-label="password"
           placeholder="Password"
           {...register('password', {
             required: {
@@ -87,8 +110,9 @@ const PasswordPrompt = ({
         {withConfirmation && (
           <Input
             placeholder="Confirm Password"
+            aria-label="confirm password"
             color="secondary"
-            {...register('passwordConfirmation', {
+            {...register('confirm-password', {
               required: {
                 value: true,
                 message: 'Confirm Password is required',
@@ -99,7 +123,7 @@ const PasswordPrompt = ({
               },
             })}
             type="password"
-            id="passwordConfirmation"
+            id="confirm-password"
           />
         )}
 

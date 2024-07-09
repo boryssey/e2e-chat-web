@@ -89,7 +89,20 @@ const DbContextProvider = ({ children }: { children: React.ReactNode }) => {
     const key = makeSecretKey(password) // TODO: use easy-web-crypto for creating a master password
 
     const appDB = new AppDB(key, user.id)
-    await appDB.open()
+    try {
+      await appDB.open()
+    } catch (error) {
+      if (error instanceof Error) {
+        if (
+          error.message === 'DEXIE ENCRYPT ADDON: Encryption key has changed'
+        ) {
+          throw new Error('Wrong database password')
+        } else {
+          console.error(error)
+          throw new Error('Failed to initialize database')
+        }
+      }
+    }
     const localSignalStore = new SignalProtocolIndexDBStore(appDB)
     const existingID = await localSignalStore.getID()
     if (!existingID) {
@@ -108,6 +121,7 @@ const DbContextProvider = ({ children }: { children: React.ReactNode }) => {
   if (status === 'unregistered' || status === 'unauthenticated') {
     return (
       <PasswordPrompt
+        username={user.username}
         promptLabel={
           status === 'unauthenticated'
             ? 'Please enter your password to decrypt the database'

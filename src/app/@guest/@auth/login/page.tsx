@@ -39,7 +39,6 @@ export default function LoginPage() {
       )
 
       if (!res.ok) {
-        console.log(res.status, res.statusText, 'test error')
         const error = (await res.json()) as unknown
 
         console.error(error, 'error')
@@ -87,6 +86,7 @@ export default function LoginPage() {
             required: { value: true, message: 'Username is required' },
           })}
           name="username"
+          aria-label="confirm password"
           placeholder="Username"
           type="text"
         />
