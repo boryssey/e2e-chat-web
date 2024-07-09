@@ -1,0 +1,28 @@
+.container {
+  margin: 0;
+  text-transform: none;
+  font-size: 18px;
+  border: none;
+  padding: 4px 8px;
+  font-weight: 300;
+  width: 100%;
+  min-height: 30px;
+  overflow: hidden;
+  color: var(--ds-gray-1000);
+  background: transparent;
+  resize: none;
+  line-height: 1.2;
+
+  &:focus {
+    border-color: var(--border-color-active);
+    outline: none;
+
+    &::placeholder {
+      color: transparent;
+    }
+  }
+
+  &::placeholder {
+    color: var(--ds-gray-900);
+  }
+}

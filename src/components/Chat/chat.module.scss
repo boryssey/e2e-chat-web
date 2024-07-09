@@ -70,37 +70,39 @@
 
 .inputContainer {
   display: flex;
+  align-items: flex-end;
+  border-top: 1px solid var(--border-color);
 
-  div:has(input) {
+  textarea {
     flex: 1;
     border: 1px solid var(--border-color);
+    flex: 1;
+    padding: 12px 20px;
+    font-size: 18px;
+    font-weight: var(--font-regular);
+    border: none;
   }
 
-  div:has(input:focus) {
-    border-color: var(--border-color-active);
-  }
-
-  div:has(input:hover:not(:focus)) {
+  &:has(textarea:focus) {
     border-color: var(--border-color-hover);
   }
 
-  .inputContainer {
-    flex: 1;
-  }
-
-  input {
-    flex: 1;
-    padding: 10px 20px;
-    font-size: 18px;
-    font-weight: var(--font-regular);
+  &:has(textarea:hover:not(:focus)) {
+    border-color: var(--border-color-hover);
   }
 
   button {
-    padding: 6px 18px;
-    background-color: var(--ds-blue-600);
+    padding: 16px 16px;
+    height: 56px;
+    margin-right: 8px;
+    background-color: transparent;
     color: var(--ds-background-100);
     border: none;
     cursor: pointer;
+
+    svg {
+      stroke: var(--ds-blue-600);
+    }
   }
 }
 

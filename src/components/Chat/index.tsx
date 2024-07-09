@@ -1,23 +1,34 @@
 import AppDB, { Contact, Message } from '@/utils/db'
 import { useLiveQuery } from 'dexie-react-hooks'
 import styles from './chat.module.scss'
-import { FormEvent, Fragment, useCallback, useMemo, useState } from 'react'
+import {
+  FormEvent,
+  Fragment,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
 import { DateTime } from 'luxon'
-import Input from '../Input'
 import ChatHeader from './ChatHeader'
+import TextArea from '../TextArea'
+import { Send } from '@geist-ui/icons'
 
 interface ChatProps {
   appDB: AppDB
   contact: Contact | null
   onSendMessage: (
     messageText: string,
-    recipientUsername: string
+    recipientUsername: string,
+    callback?: () => void
   ) => void | Promise<void>
 }
 
 const yesterdayDate = DateTime.local().minus({ days: 1 })
 
 const Chat = ({ appDB, contact, onSendMessage }: ChatProps) => {
+  const formRef = useRef<HTMLFormElement>(null)
   const [messageText, setMessageText] = useState('')
   const messages = useLiveQuery(
     () =>
@@ -50,11 +61,16 @@ const Chat = ({ appDB, contact, onSendMessage }: ChatProps) => {
       if (!contact || !messageText) {
         return
       }
-      void onSendMessage(messageText, contact.name)
-      setMessageText('')
+      void onSendMessage(messageText, contact.name, () => {
+        setMessageText('')
+      })
     },
     [contact, messageText, onSendMessage]
   )
+
+  useEffect(() => {
+    setMessageText('')
+  }, [contact?.id])
   return (
     <div className={styles.container}>
       {!contact ? (
@@ -102,19 +118,31 @@ const Chat = ({ appDB, contact, onSendMessage }: ChatProps) => {
             })}
           </div>
           <form
+            ref={formRef}
             className={styles.inputContainer}
             onSubmit={(e) => {
               handleSendMessage(e)
             }}
           >
-            <Input
-              type="text"
+            <TextArea
               value={messageText}
+              aria-label="message text"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault()
+                  if (formRef.current)
+                    formRef.current.dispatchEvent(
+                      new Event('submit', { cancelable: true, bubbles: true })
+                    )
+                }
+              }}
               onChange={(e) => {
                 setMessageText(e.target.value)
               }}
             />
-            <button type="submit">Send</button>
+            <button type="submit" aria-label="send message">
+              <Send />
+            </button>
           </form>
         </>
       )}
