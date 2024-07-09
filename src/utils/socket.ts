@@ -61,6 +61,13 @@ export interface ClientToServerEvents {
     },
     callback: () => void | Promise<void>
   ) => void | Promise<void>
+  'keyBundle:verify': (
+    data: {
+      identityPubKey: ArrayBuffer
+      username: string
+    },
+    callback: (data: { verified: boolean }) => void | Promise<void>
+  ) => void | Promise<void>
 }
 
 export const socket: Socket<ServerToClientEvents, ClientToServerEvents> = io(

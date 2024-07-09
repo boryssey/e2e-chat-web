@@ -21,6 +21,9 @@ import {
 
 import { arrayBufferToString } from '@/utils/EncryptedSignalStore'
 import { stringToArrayBuffer } from '@/utils/helpers'
+import { Contact } from '@/utils/db'
+import { useModal } from '@/components/Modal'
+import { SessionRecord } from '@privacyresearch/libsignal-protocol-typescript/lib/session-record'
 
 interface SerializedBuffer {
   data: number[]
@@ -86,7 +89,11 @@ export const getRemoteKeyBundle = async (username: string) => {
 
 interface IMessagingContext {
   socketState: SocketStateType
-  sendMessage: (messageText: string, recipientUsername: string) => Promise<void>
+  sendMessage: (
+    messageText: string,
+    recipientUsername: string,
+    callback?: () => void
+  ) => Promise<void>
 }
 
 const MessagingContext = createContext<IMessagingContext | null>(null)
@@ -101,7 +108,7 @@ export const useMessagingContext = () => {
   return messagingContext
 }
 
-type SocketStateType = 'connected' | 'lost_connection' | 'disconnected'
+export type SocketStateType = 'connected' | 'lost_connection' | 'disconnected'
 
 const MessagingContextProvider = ({
   children,
@@ -112,7 +119,7 @@ const MessagingContextProvider = ({
   const { user } = useAuthContext()
   const [socketState, setSocketState] =
     useState<SocketStateType>('disconnected')
-
+  const { showModal, hideModal } = useModal()
   const handleConnect = () => {
     setSocketState('connected')
   }
@@ -128,8 +135,76 @@ const MessagingContextProvider = ({
     }
   }
 
+  const verifyRemoteUserIdentityKey = useCallback(
+    async (recipientUsername: string) => {
+      const identityPubKey =
+        await signalStore.getRemoteIdentityKeyByUsername(recipientUsername)
+      if (!identityPubKey) {
+        console.error('No identity key found for recipient')
+        return
+      }
+      const isValidRemoteIdentityKey = await socket.emitWithAck(
+        'keyBundle:verify',
+        {
+          identityPubKey,
+          username: recipientUsername,
+        }
+      )
+      return isValidRemoteIdentityKey.verified
+    },
+    [signalStore]
+  )
+
+  const buildNewSessionWithRecipient = useCallback(
+    async (recipientAddress: SignalProtocolAddress) => {
+      const sessionBuilder = new SessionBuilder(signalStore, recipientAddress)
+      const recipientBundle = await getRemoteKeyBundle(
+        recipientAddress.getName()
+      )
+      await sessionBuilder.processPreKey(recipientBundle)
+    },
+    [signalStore]
+  )
+
+  const encryptAndSendMessage = useCallback(
+    async ({
+      sessionCipher,
+      messageText,
+      recipientUsername,
+      contact,
+    }: {
+      sessionCipher: SessionCipher
+      messageText: string
+      recipientUsername: string
+      contact: Contact
+    }) => {
+      const encryptedMessage = await sessionCipher.encrypt(
+        stringToArrayBuffer(messageText).buffer
+      )
+
+      const messageToSend = {
+        to: recipientUsername,
+        message: encryptedMessage,
+        timestamp: Date.now(),
+      }
+      await socket.emitWithAck('message:send', messageToSend)
+
+      await appDB.messages.add({
+        contactId: contact.id!,
+        message: messageText,
+        timestamp: messageToSend.timestamp,
+        isFromMe: true,
+      })
+    },
+    [appDB.messages]
+  )
+
   const sendMessage = useCallback(
-    async (messageText: string, recipientUsername: string) => {
+    async (
+      messageText: string,
+      recipientUsername: string,
+      callback?: () => void
+    ) => {
       const recipientAddress = new SignalProtocolAddress(recipientUsername, 1)
       try {
         let contact = await appDB.getContactByName(recipientUsername)
@@ -141,86 +216,140 @@ const MessagingContextProvider = ({
         const hasOpenSession = await sessionCipher.hasOpenSession()
 
         if (!hasOpenSession) {
-          const sessionBuilder = new SessionBuilder(
-            signalStore,
-            recipientAddress
-          )
-          const recipientBundle = await getRemoteKeyBundle(recipientUsername)
-          await sessionBuilder.processPreKey(recipientBundle)
-        }
-        const encryptedMessage = await sessionCipher.encrypt(
-          stringToArrayBuffer(messageText).buffer
-        )
+          await buildNewSessionWithRecipient(recipientAddress)
+        } else {
+          const isValidRemoteIdentityKey =
+            await verifyRemoteUserIdentityKey(recipientUsername)
+          if (!isValidRemoteIdentityKey) {
+            console.error('Remote identity key verification failed')
 
-        const messageToSend = {
-          to: recipientUsername,
-          message: encryptedMessage,
-          timestamp: Date.now(),
+            showModal({
+              title: 'User generated new identity',
+              content: `User that you are trying to message has generated a new identity recently. That could mean they recently logged on a new device without transfering their old data.
+              Do you still want to send this message?`,
+              cancelButtonText: 'Cancel',
+              onCancel: hideModal,
+              onConfirm: async () => {
+                await sessionCipher.deleteAllSessionsForDevice()
+                await signalStore.deleteIdentity(recipientUsername)
+                await buildNewSessionWithRecipient(recipientAddress)
+                await encryptAndSendMessage({
+                  sessionCipher,
+                  messageText,
+                  recipientUsername,
+                  contact,
+                })
+                callback?.()
+              },
+              confirmButtonText: 'Send',
+            })
+            return
+          }
         }
-        await socket.emitWithAck('message:send', messageToSend)
-
-        await appDB.messages.add({
-          contactId: contact.id!,
-          message: messageText,
-          timestamp: messageToSend.timestamp,
-          isFromMe: true,
+        await encryptAndSendMessage({
+          sessionCipher,
+          messageText,
+          recipientUsername,
+          contact,
         })
+        callback?.()
       } catch (error) {
         console.error(error)
+        throw new Error('Failed to send message')
       }
     },
-    [appDB, signalStore]
+    [
+      appDB,
+      buildNewSessionWithRecipient,
+      encryptAndSendMessage,
+      hideModal,
+      showModal,
+      signalStore,
+      verifyRemoteUserIdentityKey,
+    ]
   )
 
   const onMessageReceive: ServerToClientEvents['message:receive'] = useCallback(
     async (messageData) => {
-      const senderName = messageData.from_user_username
-      const sender = new SignalProtocolAddress(senderName, 1)
-      const sessionCipher = new SessionCipher(signalStore, sender)
-      const message = messageData.message
-      const contact = await appDB.getOrCreateContact(senderName)
-      console.log('🚀 ~ socket.on ~ message:', message)
-      let decryptedMessage: string | undefined
-      if (message.type === 3) {
-        if (!message.body) {
-          console.warn('Received message of not supported type')
-          return
-        }
-        decryptedMessage = arrayBufferToString(
-          await sessionCipher.decryptPreKeyWhisperMessage(
-            message.body,
-            'binary'
+      try {
+        const senderName = messageData.from_user_username
+        const sender = new SignalProtocolAddress(senderName, 1)
+        const sessionCipher = new SessionCipher(signalStore, sender)
+        const message = messageData.message
+        const contact = await appDB.getOrCreateContact(senderName)
+        const sessionWithRecipient = await signalStore.loadSession(
+          sender.toString()
+        )
+        let decryptedMessage: string | undefined
+        if (message.type === 3) {
+          if (!message.body) {
+            console.warn('Received message of not supported type')
+            return
+          }
+          decryptedMessage = arrayBufferToString(
+            await sessionCipher.decryptPreKeyWhisperMessage(
+              message.body,
+              'binary'
+            )
           )
-        )
-      } else if (message.type === 1) {
-        if (!message.body) {
+        } else if (message.type === 1) {
+          if (!message.body) {
+            console.warn('Received message of not supported type')
+            return
+          }
+          decryptedMessage = arrayBufferToString(
+            await sessionCipher.decryptWhisperMessage(message.body, 'binary')
+          )
+        }
+        if (!decryptedMessage) {
           console.warn('Received message of not supported type')
           return
         }
-        decryptedMessage = arrayBufferToString(
-          await sessionCipher.decryptWhisperMessage(message.body, 'binary')
+
+        const decryptedMessageToSave = {
+          contactId: contact.id!,
+          timestamp: new Date(messageData.timestamp).getTime(),
+          message: decryptedMessage,
+        }
+        await appDB.messages.add(decryptedMessageToSave)
+        await socket.emitWithAck('message:ack', {
+          lastReceivedMessageId: messageData.id,
+        })
+      } catch (error) {
+        if (
+          error instanceof Error &&
+          error.message !== 'Identity key changed' &&
+          error.message !== 'Bad MAC'
+        ) {
+          console.error(error)
+          throw new Error('Failed to receive message')
+        }
+        console.error(error)
+
+        const cipher = new SessionCipher(
+          signalStore,
+          new SignalProtocolAddress(messageData.from_user_username, 1)
         )
+        const hasOpenSession = await cipher.hasOpenSession()
+        if (hasOpenSession) {
+          const isValidRemoteIdentityKey = await verifyRemoteUserIdentityKey(
+            messageData.from_user_username
+          )
+          if (!isValidRemoteIdentityKey) {
+            console.error('Remote identity key verification failed')
+            await cipher.deleteAllSessionsForDevice()
+            await signalStore.deleteIdentity(messageData.from_user_username)
+            try {
+              await onMessageReceive(messageData)
+            } catch (error2) {
+              console.error(error2)
+              throw new Error('Failed to receive message')
+            }
+          }
+        }
       }
-
-      console.log(
-        `decryptedMessage, type: ${message.type}, Message: ${decryptedMessage}`
-      )
-      if (!decryptedMessage) {
-        console.warn('Received message of not supported type')
-        return
-      }
-
-      const decryptedMessageToSave = {
-        contactId: contact.id!,
-        timestamp: new Date(messageData.timestamp).getTime(),
-        message: decryptedMessage,
-      }
-      await appDB.messages.add(decryptedMessageToSave)
-      await socket.emitWithAck('message:ack', {
-        lastReceivedMessageId: messageData.id,
-      })
     },
-    [appDB, signalStore]
+    [appDB, signalStore, verifyRemoteUserIdentityKey]
   )
 
   const onMessageStored: ServerToClientEvents['messages:stored'] = useCallback(

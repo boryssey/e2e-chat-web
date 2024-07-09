@@ -7,6 +7,7 @@ export interface Message {
   contactId: string
   message: string
   isFromMe?: boolean
+  type?: 'text' | 'system'
 }
 
 export interface KeyPairType<T = ArrayBuffer> {
@@ -50,8 +51,8 @@ export default class AppDB extends Dexie {
   constructor(secret: string, userId: string | number) {
     super(`${AppDB.dbName}-${userId}`)
     encrypted(this, { secretKey: secret })
-    this.version(3).stores({
-      messages: '#id, $timestamp, contactId, $message, isFromMe',
+    this.version(4).stores({
+      messages: '#id, $timestamp, type, contactId, $message, isFromMe',
       contacts: '#id, name',
       signalStoreItems: 'key, $value',
     })
