@@ -1,7 +1,4 @@
 .container {
-  display: flex;
-  align-items: center;
-  justify-content: center;
   background-color: var(--ds-gray-1000);
   height: 100%;
   width: 100%;
@@ -49,11 +46,11 @@
   }
 }
 
+/* Safari 10.1+ (alternate method) */
+
 @media screen and (max-width: 768px) {
-  .container {
-    // padding: 10px;
-  }
   .infoContainer {
     margin: 40px 40px 20px 20px;
+    flex: 1;
   }
 }

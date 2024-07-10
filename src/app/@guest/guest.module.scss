@@ -17,12 +17,18 @@
 }
 
 @media screen and (max-width: 1024px) {
+  @supports (-webkit-hyphens: none) {
+    .container {
+      max-height: 100vh;
+      overflow-y: hidden;
+    }
+  }
   .container {
     grid-template-columns: 1fr 0fr;
     overflow: hidden;
 
     & > * {
-      overflow: hidden;
+      overflow-x: hidden;
     }
 
     :global(.verticalNavLink) {
