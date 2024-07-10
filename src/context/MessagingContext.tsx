@@ -23,7 +23,6 @@ import { arrayBufferToString } from '@/utils/EncryptedSignalStore'
 import { stringToArrayBuffer } from '@/utils/helpers'
 import { Contact } from '@/utils/db'
 import { useModal } from '@/components/Modal'
-import { SessionRecord } from '@privacyresearch/libsignal-protocol-typescript/lib/session-record'
 
 interface SerializedBuffer {
   data: number[]
@@ -277,9 +276,6 @@ const MessagingContextProvider = ({
         const sessionCipher = new SessionCipher(signalStore, sender)
         const message = messageData.message
         const contact = await appDB.getOrCreateContact(senderName)
-        const sessionWithRecipient = await signalStore.loadSession(
-          sender.toString()
-        )
         let decryptedMessage: string | undefined
         if (message.type === 3) {
           if (!message.body) {
