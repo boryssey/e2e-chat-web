@@ -1,0 +1,42 @@
+.container {
+  block-size: 20px;
+  inline-size: 20px;
+
+  svg {
+    fill: transparent;
+    animation-duration: 690ms;
+    animation-fill-mode: forwards;
+    animation-name: rotate;
+    animation-iteration-count: infinite;
+    animation-timing-function: linear;
+  }
+  circle {
+    stroke-dasharray: 42 * 2 * 3.1416 42 * 2 * 3.1416;
+    stroke-linecap: butt;
+    stroke-width: 12;
+    stroke: var(--ds-gray-1000);
+    animation-timing-function: cubic-bezier(0.5, 0, 0.1, 1);
+    stroke-dashoffset: 52.527552;
+    animation-duration: 10ms;
+    animation-name: loading-animation;
+  }
+}
+
+@keyframes loading-animation {
+  0% {
+    stroke-dashoffset: 276.4608;
+  }
+  100% {
+    stroke-dashoffset: 52.527552;
+  }
+}
+
+@keyframes rotate {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}

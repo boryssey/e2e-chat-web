@@ -37,21 +37,34 @@ export interface ServerToClientEvents {
   hello: (data: { hello: 'world' }) => void | Promise<void>
 }
 
+type Result<Error, Value> =
+  | {
+      success: false
+      error: Error
+    }
+  | {
+      success: true
+      value?: Value
+    }
+
+export type CallbackWithError<Value> = (data: Result<Error, Value>) => void
+
 export interface ClientToServerEvents {
   'message:send': (
     data: {
       to: string
       message: MessageType
       timestamp: number
+      // }, callback: () => void | Promise<void>) => void | Promise<void>;
     },
-    callback: () => void | Promise<void>
-  ) => void | Promise<void>
+    callback: CallbackWithError<Record<string, unknown>>
+  ) => void
   'message:ack': (
     data: {
       lastReceivedMessageId: number
     },
-    callback: () => void | Promise<void>
-  ) => void | Promise<void>
+    callback: CallbackWithError<Record<string, unknown>>
+  ) => void
   'keyBundle:save': (
     data: {
       registrationId: number
@@ -59,15 +72,15 @@ export interface ClientToServerEvents {
       signedPreKey: SignedPublicPreKeyType
       oneTimePreKeys: PreKeyType[]
     },
-    callback: () => void | Promise<void>
-  ) => void | Promise<void>
+    callback: CallbackWithError<Record<string, unknown>>
+  ) => void
   'keyBundle:verify': (
     data: {
       identityPubKey: ArrayBuffer
       username: string
     },
-    callback: (data: { verified: boolean }) => void | Promise<void>
-  ) => void | Promise<void>
+    callback: CallbackWithError<{ verified?: boolean }>
+  ) => void
 }
 
 export const socket: Socket<ServerToClientEvents, ClientToServerEvents> = io(
@@ -87,3 +100,21 @@ export declare type DisconnectDescription =
       description: string
       context?: unknown
     }
+
+export declare type AllButLast<T extends unknown[]> = T extends [
+  ...infer H,
+  infer _L,
+]
+  ? H
+  : unknown[]
+
+export const emitEventWithAck = async (
+  ...[eventName, ...data]: Parameters<typeof socket.emitWithAck>
+) => {
+  const response = await socket.emitWithAck(eventName, ...data)
+
+  if (response.success) {
+    return response.value
+  }
+  throw new Error(response.error.name)
+}

@@ -35,17 +35,24 @@ const Button = ({
   empty = false,
   withArrow,
   color = 'primary',
+  className,
   ...props
 }: ButtonProps) => {
   if (empty) {
     return (
-      <button className={styles.noStyle} {...props}>
+      <button
+        className={`${styles.noStyle}${className ? ` ${className}` : ''}`}
+        {...props}
+      >
         {children}
       </button>
     )
   }
   return (
-    <button className={styles[color]} {...props}>
+    <button
+      className={`${styles[color]}${className ? ` ${className}` : ''}`}
+      {...props}
+    >
       {children} {withArrow && <Arrow />}
     </button>
   )

@@ -14,6 +14,7 @@ import { DateTime } from 'luxon'
 import ChatHeader from './ChatHeader'
 import TextArea from '../TextArea'
 import { Send } from '@geist-ui/icons'
+import Loading from '../Loading'
 
 interface ChatProps {
   appDB: AppDB
@@ -30,6 +31,7 @@ const yesterdayDate = DateTime.local().minus({ days: 1 })
 const Chat = ({ appDB, contact, onSendMessage }: ChatProps) => {
   const formRef = useRef<HTMLFormElement>(null)
   const [messageText, setMessageText] = useState('')
+  const [isMessageSending, setIsMessageSending] = useState(false)
   const messages = useLiveQuery(
     () =>
       contact
@@ -56,14 +58,20 @@ const Chat = ({ appDB, contact, onSendMessage }: ChatProps) => {
   }, [messages])
 
   const handleSendMessage = useCallback(
-    (e: FormEvent<HTMLFormElement>) => {
+    async (e: FormEvent<HTMLFormElement>) => {
       e.preventDefault()
       if (!contact || !messageText) {
         return
       }
-      void onSendMessage(messageText, contact.name, () => {
-        setMessageText('')
-      })
+      try {
+        setIsMessageSending(true)
+        await onSendMessage(messageText, contact.name, () => {
+          setMessageText('')
+        })
+      } catch (error) {
+        console.error(error, 'error while sending message')
+      }
+      setIsMessageSending(false)
     },
     [contact, messageText, onSendMessage]
   )
@@ -121,12 +129,14 @@ const Chat = ({ appDB, contact, onSendMessage }: ChatProps) => {
             ref={formRef}
             className={styles.inputContainer}
             onSubmit={(e) => {
-              handleSendMessage(e)
+              void handleSendMessage(e)
             }}
           >
             <TextArea
               value={messageText}
               aria-label="message text"
+              disabled={isMessageSending}
+              aria-disabled={isMessageSending}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
                   e.preventDefault()
@@ -140,8 +150,13 @@ const Chat = ({ appDB, contact, onSendMessage }: ChatProps) => {
                 setMessageText(e.target.value)
               }}
             />
-            <button type="submit" aria-label="send message">
-              <Send />
+            <button
+              type="submit"
+              aria-label="send message"
+              disabled={isMessageSending}
+              aria-disabled={isMessageSending}
+            >
+              {isMessageSending ? <Loading /> : <Send />}
             </button>
           </form>
         </>

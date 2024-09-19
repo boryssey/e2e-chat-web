@@ -9,6 +9,7 @@ import { useDbContext } from './DbContext'
 import { useAuthContext } from './AuthContext'
 import {
   DisconnectDescription,
+  emitEventWithAck,
   ServerToClientEvents,
   socket,
 } from '@/utils/socket'
@@ -142,14 +143,15 @@ const MessagingContextProvider = ({
         console.error('No identity key found for recipient')
         return
       }
-      const isValidRemoteIdentityKey = await socket.emitWithAck(
+      const isValidRemoteIdentityKey = await emitEventWithAck(
         'keyBundle:verify',
         {
           identityPubKey,
           username: recipientUsername,
         }
       )
-      return isValidRemoteIdentityKey.verified
+
+      return isValidRemoteIdentityKey?.verified
     },
     [signalStore]
   )
@@ -186,7 +188,7 @@ const MessagingContextProvider = ({
         message: encryptedMessage,
         timestamp: Date.now(),
       }
-      await socket.emitWithAck('message:send', messageToSend)
+      await emitEventWithAck('message:send', messageToSend)
 
       await appDB.messages.add({
         contactId: contact.id!,
@@ -308,7 +310,7 @@ const MessagingContextProvider = ({
           message: decryptedMessage,
         }
         await appDB.messages.add(decryptedMessageToSave)
-        await socket.emitWithAck('message:ack', {
+        await emitEventWithAck('message:ack', {
           lastReceivedMessageId: messageData.id,
         })
       } catch (error) {

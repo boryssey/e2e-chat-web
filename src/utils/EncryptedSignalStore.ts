@@ -328,6 +328,8 @@ export class SignalProtocolIndexDBStore implements StorageType {
       identityKeyPair,
       signedPreKeyId
     )
+
+    await this.storeSignedPreKey(signedPreKeyId, signedPreKey.keyPair)
     const publicSignedPreKey: SignedPublicPreKeyType = {
       keyId: signedPreKeyId,
       publicKey: signedPreKey.keyPair.pubKey,

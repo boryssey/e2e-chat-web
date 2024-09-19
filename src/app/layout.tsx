@@ -13,7 +13,9 @@ export const metadata: Metadata = {
 
 const getUserInfo = async () => {
   const cookieStore = cookies()
-
+  if (!cookieStore.has('accessToken')) {
+    return null
+  }
   const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/me`, {
     headers: {
       Cookie: cookieStore.toString(),

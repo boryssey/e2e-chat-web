@@ -4,7 +4,7 @@ import { createContext, useContext, useEffect, useState } from 'react'
 import { encode as encodeBase64 } from '@stablelib/base64'
 import PasswordPrompt from '@/components/PasswordPrompt'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { socket } from '@/utils/socket'
+import { emitEventWithAck } from '@/utils/socket'
 import { useAuthContext } from './AuthContext'
 import Dexie from 'dexie'
 
@@ -107,7 +107,13 @@ const DbContextProvider = ({ children }: { children: React.ReactNode }) => {
     const existingID = await localSignalStore.getID()
     if (!existingID) {
       const newId = await localSignalStore.createID()
-      void socket.emitWithAck('keyBundle:save', newId)
+      try {
+        emitEventWithAck('keyBundle:save', newId).catch((err: unknown) => {
+          console.error('error', err)
+        })
+      } catch (error) {
+        console.error(error)
+      }
     }
     setSignalStore(localSignalStore)
     setAppDB(appDB)

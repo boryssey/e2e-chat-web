@@ -3,9 +3,11 @@ import Button from '@/components/Button'
 import Input from '@/components/Input'
 import { useForm, SubmitHandler } from 'react-hook-form'
 import styles from '../auth.module.scss'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { usePathname } from 'next/navigation'
 import VerticalNavLink from '@/components/VerticalNavigationButton'
+import { register as registerUser } from './registerAction'
 import Link from 'next/link'
+import Loading from '@/components/Loading'
 
 interface Inputs {
   username: string
@@ -14,62 +16,46 @@ interface Inputs {
 }
 
 export default function LoginPage() {
-  const hasOpenParam = useSearchParams().has('open')
-
-  const router = useRouter()
+  const pathname = usePathname()
+  const isOpen = pathname.includes('/register')
 
   const {
     register,
     watch,
     handleSubmit,
     setError,
-    formState: { errors },
+    formState: { errors, isSubmitting: isLoading },
   } = useForm<Inputs>()
 
   const onRegister: SubmitHandler<Inputs> = async (data) => {
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/register`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-        credentials: 'include',
+    try {
+      await registerUser(data)
+    } catch (error) {
+      if (!(error instanceof Error)) {
+        setError('username', {
+          type: 'server_error',
+          message: 'Something went wrong',
+        })
+        return
       }
-    )
-    if (!res.ok) {
-      const error = (await res.json()) as unknown
-
-      console.error(error, 'error')
-
       setError('username', {
         type: 'server_error',
-        message:
-          error &&
-          typeof error === 'object' &&
-          'message' in error &&
-          typeof error.message === 'string'
-            ? error.message
-            : res.statusText,
+        message: error.message,
       })
-
-      return
     }
-    router.push('/')
   }
-  console.log(errors, 'errors')
+
   return (
     <>
-      {hasOpenParam && (
-        <VerticalNavLink asLink href={'/register'} reverse>
+      {isOpen && (
+        <VerticalNavLink asLink href={'/?from=register'} reverse>
           ↑ ABOUT
         </VerticalNavLink>
       )}
 
       <h1>Sign up</h1>
       <form
-        className={hasOpenParam ? 'open' : ''}
+        className={isOpen ? 'open' : ''}
         onSubmit={handleSubmit(onRegister)}
         id="loginForm"
       >
@@ -141,11 +127,12 @@ export default function LoginPage() {
         </div>
       )}
       <div className={styles.actionWrapper}>
-        <Link href={`/login${hasOpenParam ? '?open' : ''}`}>
+        <Link scroll={false} href={'/login'}>
           Sign in instead
         </Link>
-        <Button form="loginForm" withArrow>
+        <Button form="loginForm" withArrow={!isLoading} disabled={isLoading}>
           SIGN UP
+          {isLoading && <Loading />}
         </Button>
       </div>
     </>

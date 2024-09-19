@@ -12,7 +12,7 @@ import {
   useMessagingContext,
 } from '@/context/MessagingContext'
 import { useDbContext } from '@/context/DbContext'
-import { socket } from '@/utils/socket'
+import { emitEventWithAck } from '@/utils/socket'
 import { Contact } from '@/utils/db'
 import ContactList from '@/components/ContactList'
 import Chat from '@/components/Chat'
@@ -45,7 +45,7 @@ const UserPage = () => {
 
   const testSaveKeyBundle = useCallback(async () => {
     const keyBundle = await signalStore.createID()
-    await socket.emitWithAck('keyBundle:save', keyBundle)
+    await emitEventWithAck('keyBundle:save', keyBundle)
   }, [signalStore])
   // arrow up
 

@@ -3,6 +3,7 @@ import Input from '../Input'
 import { SubmitHandler, useForm } from 'react-hook-form'
 import Button from '../Button'
 import styles from './passwordPrompt.module.scss'
+import { logout } from '@/app/actions/logout'
 
 interface PasswordPromptProps {
   onSubmit: (password: string, withCreateID?: boolean) => void | Promise<void>
@@ -131,6 +132,13 @@ const PasswordPrompt = ({
           Submit
         </Button>
       </form>
+      <Button
+        color="secondary"
+        onClick={() => logout()}
+        className={styles.logoutButton}
+      >
+        Logout
+      </Button>
       {Object.values(errors).length > 0 && (
         <div className={styles.errorWrapper}>
           {Object.values(errors).map((error, index) => (

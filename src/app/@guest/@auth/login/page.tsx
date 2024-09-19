@@ -1,12 +1,14 @@
 'use client'
 import Button from '@/components/Button'
 import Input from '@/components/Input'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { usePathname } from 'next/navigation'
 import { useForm, SubmitHandler } from 'react-hook-form'
 import styles from '../auth.module.scss'
 import { useCallback } from 'react'
 import VerticalNavLink from '@/components/VerticalNavigationButton'
 import Link from 'next/link'
+import { login } from './loginAction'
+import Loading from '@/components/Loading'
 
 interface Inputs {
   username: string
@@ -14,70 +16,40 @@ interface Inputs {
 }
 
 export default function LoginPage() {
-  const router = useRouter()
-  const hasOpenParam = useSearchParams().has('open')
+  const pathname = usePathname()
+  const isOpen = pathname.includes('/login')
   const {
     register,
     handleSubmit,
     setError,
-    formState: { errors },
+    formState: { errors, isSubmitting: isLoading },
   } = useForm<Inputs>()
 
   const onLogin: SubmitHandler<Inputs> = useCallback(
     async (data, event) => {
       event?.preventDefault()
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/login`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(data),
-          credentials: 'include',
+      try {
+        await login(data)
+      } catch (error: unknown) {
+        if (error instanceof Error) {
+          setError('password', { type: 'server_error', message: error.message })
         }
-      )
-
-      if (!res.ok) {
-        const error = (await res.json()) as unknown
-
-        console.error(error, 'error')
-        if (
-          error &&
-          typeof error === 'object' &&
-          'message' in error &&
-          typeof error.message === 'string'
-        ) {
-          setError('password', {
-            type: 'server_error',
-            message: error.message,
-          })
-        } else {
-          setError('password', {
-            type: 'server_error',
-            message: res.statusText,
-          })
-        }
-
-        return
       }
-      router.push('/')
-      router.refresh()
     },
-    [router, setError]
+    [setError]
   )
 
   return (
     <>
-      {hasOpenParam && (
-        <VerticalNavLink asLink href={'/login'} reverse>
+      {isOpen && (
+        <VerticalNavLink asLink href={'/?from=login'} reverse>
           ↑ ABOUT
         </VerticalNavLink>
       )}
 
       <h1>Sign in</h1>
       <form
-        className={hasOpenParam ? 'open' : ''}
+        className={isOpen ? 'open' : ''}
         onSubmit={handleSubmit(onLogin)}
         id="loginForm"
       >
@@ -107,12 +79,13 @@ export default function LoginPage() {
         </div>
       )}
       <div className={styles.actionWrapper}>
-        <Link href={`/register${hasOpenParam ? '?open' : ''}`}>
+        <Link scroll={false} href={'/register'}>
           Sign up instead
         </Link>
 
-        <Button form="loginForm" withArrow>
-          <b>SIGN IN</b>
+        <Button form="loginForm" withArrow={!isLoading} disabled={isLoading}>
+          <span>SIGN IN</span>
+          {isLoading && <Loading />}
         </Button>
       </div>
     </>
