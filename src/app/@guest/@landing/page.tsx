@@ -1,5 +1,5 @@
 import styles from './landing.module.scss'
-import NavLink from './NavLInk'
+import NavLink from './NavLink'
 // arrow up symbol: ↑
 export default function LandingPage() {
   return (

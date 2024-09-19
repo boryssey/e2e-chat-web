@@ -1,6 +1,7 @@
 import localFont from 'next/font/local'
 
 const biotif = localFont({
+  declarations: [{ prop: 'descent-override', value: '0%' }],
   src: [
     // public/public/font/Biotif-Black.ttf public/fonts/Biotif-BlackItalic.ttf public/fonts/Biotif-Bold.ttf public/fonts/Biotif-BoldItalic.ttf public/fonts/Biotif-Book.ttf public/fonts/Biotif-BookItalic.ttf public/fonts/Biotif-ExtraBold.ttf public/fonts/Biotif-ExtraBoldItalic.ttf public/fonts/Biotif-Light.ttf public/fonts/Biotif-LightItalic.ttf public/fonts/Biotif-Medium.ttf public/fonts/Biotif-MediumItalic.ttf public/fonts/Biotif-Regular.ttf public/fonts/Biotif-RegularItalic.ttf public/fonts/Biotif-SemiBold.ttf public/fonts/Biotif-SemiBoldItalic.ttf
     {

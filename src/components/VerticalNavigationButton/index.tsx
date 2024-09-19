@@ -48,7 +48,7 @@ function VerticalNavigationButton({
   })
   if (asLink && href) {
     return (
-      <Link href={href} {...props} replace className={className}>
+      <Link href={href} scroll={false} {...props} replace className={className}>
         {children}
       </Link>
     )
