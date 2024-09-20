@@ -41,7 +41,13 @@ export async function login(data: Inputs) {
     'message' in error &&
     typeof error.message === 'string'
   ) {
-    throw new Error('Invalid Credentials')
+    return {
+      type: 'server_error',
+      message: error.message,
+    }
   }
-  throw new Error('Server Error')
+  return {
+    type: 'server_error',
+    message: response.statusText,
+  }
 }

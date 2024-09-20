@@ -29,18 +29,13 @@ export default function LoginPage() {
 
   const onRegister: SubmitHandler<Inputs> = async (data) => {
     try {
-      await registerUser(data)
+      const res = await registerUser(data)
+      setError('password', res)
     } catch (error) {
-      if (!(error instanceof Error)) {
-        setError('username', {
-          type: 'server_error',
-          message: 'Something went wrong',
-        })
-        return
-      }
+      console.error(error)
       setError('username', {
         type: 'server_error',
-        message: error.message,
+        message: 'Something went wrong',
       })
     }
   }

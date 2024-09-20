@@ -29,11 +29,14 @@ export default function LoginPage() {
     async (data, event) => {
       event?.preventDefault()
       try {
-        await login(data)
-      } catch (error: unknown) {
-        if (error instanceof Error) {
-          setError('password', { type: 'server_error', message: error.message })
-        }
+        const res = await login(data)
+        setError('password', res)
+      } catch (error) {
+        console.error(error)
+        setError('password', {
+          type: 'server_error',
+          message: 'Something went wrong',
+        })
       }
     },
     [setError]
