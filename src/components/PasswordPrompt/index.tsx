@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import Input from '../Input'
 import { SubmitHandler, useForm } from 'react-hook-form'
 import Button from '../Button'
@@ -27,7 +26,6 @@ const PasswordPrompt = ({
   withConfirmation = false,
   username,
 }: PasswordPromptProps) => {
-  const [password, setPassword] = useState('')
   const {
     register,
     watch,
@@ -88,25 +86,8 @@ const PasswordPrompt = ({
                 value: 32,
                 message: 'Password must be at most 20 characters',
               },
-              validate: {
-                uppercase: (value) =>
-                  /[A-Z]/.test(value) ||
-                  'Password must contain an uppercase letter',
-                lowercase: (value) =>
-                  /[a-z]/.test(value) ||
-                  'Password must contain a lowercase letter',
-                number: (value) =>
-                  /[0-9]/.test(value) || 'Password must contain a number',
-                specialCharacter: (value) =>
-                  /[!@#$%^&*]/.test(value) ||
-                  'Password must contain a special character',
-              },
             }),
           })}
-          value={password}
-          onChange={(e) => {
-            setPassword(e.target.value)
-          }}
         />
         {withConfirmation && (
           <Input
