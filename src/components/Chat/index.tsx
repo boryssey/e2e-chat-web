@@ -137,6 +137,7 @@ const Chat = ({ appDB, contact, onSendMessage }: ChatProps) => {
               aria-label="message text"
               disabled={isMessageSending}
               aria-disabled={isMessageSending}
+              autoFocus
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
                   e.preventDefault()

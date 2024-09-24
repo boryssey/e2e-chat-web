@@ -71,6 +71,7 @@ const PasswordPrompt = ({
           color="secondary"
           type="password"
           aria-label="password"
+          autoFocus
           placeholder="Password"
           {...register('password', {
             required: {

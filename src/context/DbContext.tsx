@@ -70,6 +70,12 @@ const DbContextProvider = ({ children }: { children: React.ReactNode }) => {
         return
       }
       setStatus('unauthenticated')
+      const savedPass = sessionStorage.getItem('key')
+      if (savedPass) {
+        onInitDBs(savedPass).catch((error: unknown) => {
+          console.log('saved pass incorrect', error)
+        })
+      }
     }
     void init()
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -106,11 +112,18 @@ const DbContextProvider = ({ children }: { children: React.ReactNode }) => {
     const localSignalStore = new SignalProtocolIndexDBStore(appDB)
     const existingID = await localSignalStore.getID()
     if (!existingID) {
-      const newId = await localSignalStore.createID()
+      const { preKeyBundle, ...rest } =
+        await SignalProtocolIndexDBStore.createID()
+      await localSignalStore.saveID({
+        registrationId: preKeyBundle.registrationId,
+        ...rest,
+      })
       try {
-        emitEventWithAck('keyBundle:save', newId).catch((err: unknown) => {
-          console.error('error', err)
-        })
+        emitEventWithAck('keyBundle:save', preKeyBundle).catch(
+          (err: unknown) => {
+            console.error('error', err)
+          }
+        )
       } catch (error) {
         console.error(error)
       }
@@ -118,6 +131,7 @@ const DbContextProvider = ({ children }: { children: React.ReactNode }) => {
     setSignalStore(localSignalStore)
     setAppDB(appDB)
     setStatus('authenticated')
+    sessionStorage.setItem('key', password)
   }
 
   if (!status) {

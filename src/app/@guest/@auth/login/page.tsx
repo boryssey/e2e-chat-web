@@ -7,8 +7,8 @@ import styles from '../auth.module.scss'
 import { useCallback } from 'react'
 import VerticalNavLink from '@/components/VerticalNavigationButton'
 import Link from 'next/link'
-import { login } from './loginAction'
 import Loading from '@/components/Loading'
+import { useRouter } from 'next/navigation'
 
 interface Inputs {
   username: string
@@ -18,6 +18,7 @@ interface Inputs {
 export default function LoginPage() {
   const pathname = usePathname()
   const isOpen = pathname.includes('/login')
+  const router = useRouter()
   const {
     register,
     handleSubmit,
@@ -28,18 +29,44 @@ export default function LoginPage() {
   const onLogin: SubmitHandler<Inputs> = useCallback(
     async (data, event) => {
       event?.preventDefault()
-      try {
-        const res = await login(data)
-        setError('password', res)
-      } catch (error) {
-        console.error(error)
-        setError('password', {
-          type: 'server_error',
-          message: 'Something went wrong',
-        })
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/login`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data),
+          credentials: 'include',
+        }
+      )
+
+      if (!res.ok) {
+        const error = (await res.json()) as unknown
+
+        console.error(error, 'error')
+        if (
+          error &&
+          typeof error === 'object' &&
+          'message' in error &&
+          typeof error.message === 'string'
+        ) {
+          setError('password', {
+            type: 'server_error',
+            message: error.message,
+          })
+        } else {
+          setError('password', {
+            type: 'server_error',
+            message: res.statusText,
+          })
+        }
+        return
       }
+      router.push('/')
+      router.refresh()
     },
-    [setError]
+    [setError, router]
   )
 
   return (

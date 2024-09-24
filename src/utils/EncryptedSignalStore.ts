@@ -4,8 +4,10 @@ import {
   FingerprintGenerator,
   KeyHelper,
   KeyPairType,
+  PreKeyPairType,
   PreKeyType,
   SignalProtocolAddress,
+  SignedPreKeyPairType,
   SignedPublicPreKeyType,
   StorageType,
 } from '@privacyresearch/libsignal-protocol-typescript'
@@ -309,17 +311,14 @@ export class SignalProtocolIndexDBStore implements StorageType {
     return this.del('signedPreKey:' + keyId)
   }
 
-  async createID() {
+  static async createID() {
     const registrationId = KeyHelper.generateRegistrationId()
-    await this.saveLocalRegistrationId(registrationId.toString())
 
     const identityKeyPair = await KeyHelper.generateIdentityKeyPair()
-    await this.saveIdentityKeyPair(identityKeyPair)
     const preKeys = await Promise.all(
       Array.from({ length: 100 }, async (_) => {
         const baseKeyId = Math.floor(10000 * Math.random())
         const preKey = await KeyHelper.generatePreKey(baseKeyId)
-        await this.storePreKey(`${baseKeyId}`, preKey.keyPair)
         return preKey
       })
     )
@@ -329,7 +328,6 @@ export class SignalProtocolIndexDBStore implements StorageType {
       signedPreKeyId
     )
 
-    await this.storeSignedPreKey(signedPreKeyId, signedPreKey.keyPair)
     const publicSignedPreKey: SignedPublicPreKeyType = {
       keyId: signedPreKeyId,
       publicKey: signedPreKey.keyPair.pubKey,
@@ -346,7 +344,24 @@ export class SignalProtocolIndexDBStore implements StorageType {
       })),
     }
 
-    return preKeyBundle
+    return { preKeyBundle, signedPreKey, identityKeyPair, preKeys }
+  }
+
+  async saveID(keyBundle: {
+    registrationId: number
+    identityKeyPair: KeyPairType
+    signedPreKey: SignedPreKeyPairType
+    preKeys: PreKeyPairType[]
+  }) {
+    const { signedPreKey, identityKeyPair, registrationId, preKeys } = keyBundle
+    await this.storeSignedPreKey(signedPreKey.keyId, signedPreKey.keyPair)
+    await this.saveIdentityKeyPair(identityKeyPair)
+    await this.saveLocalRegistrationId(registrationId.toString())
+    await Promise.all(
+      preKeys.map(async ({ keyId, keyPair }) => {
+        await this.storePreKey(`${keyId}`, keyPair)
+      })
+    )
   }
 
   async getID() {

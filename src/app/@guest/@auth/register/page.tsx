@@ -3,9 +3,8 @@ import Button from '@/components/Button'
 import Input from '@/components/Input'
 import { useForm, SubmitHandler } from 'react-hook-form'
 import styles from '../auth.module.scss'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import VerticalNavLink from '@/components/VerticalNavigationButton'
-import { register as registerUser } from './registerAction'
 import Link from 'next/link'
 import Loading from '@/components/Loading'
 
@@ -18,6 +17,7 @@ interface Inputs {
 export default function LoginPage() {
   const pathname = usePathname()
   const isOpen = pathname.includes('/register')
+  const router = useRouter()
 
   const {
     register,
@@ -27,17 +27,39 @@ export default function LoginPage() {
     formState: { errors, isSubmitting: isLoading },
   } = useForm<Inputs>()
 
-  const onRegister: SubmitHandler<Inputs> = async (data) => {
-    try {
-      const res = await registerUser(data)
-      setError('password', res)
-    } catch (error) {
-      console.error(error)
+  const onRegister: SubmitHandler<Inputs> = async (data, event) => {
+    event?.preventDefault()
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/register`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+        credentials: 'include',
+      }
+    )
+    if (!res.ok) {
+      const error = (await res.json()) as unknown
+
+      console.error(error, 'error')
+
       setError('username', {
         type: 'server_error',
-        message: 'Something went wrong',
+        message:
+          error &&
+          typeof error === 'object' &&
+          'message' in error &&
+          typeof error.message === 'string'
+            ? error.message
+            : res.statusText,
       })
+
+      return
     }
+    router.push('/')
+    router.refresh()
   }
 
   return (

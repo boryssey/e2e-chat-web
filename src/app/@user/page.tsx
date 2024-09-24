@@ -12,7 +12,7 @@ import {
   useMessagingContext,
 } from '@/context/MessagingContext'
 import { useDbContext } from '@/context/DbContext'
-import { emitEventWithAck } from '@/utils/socket'
+// import { emitEventWithAck } from '@/utils/socket'
 import { Contact } from '@/utils/db'
 import ContactList from '@/components/ContactList'
 import Chat from '@/components/Chat'
@@ -25,7 +25,7 @@ const UserPage = () => {
   const [isChatOpen, setIsChatOpen] = useState(false)
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null)
   const { logout } = useAuthContext()
-  const { signalStore, appDB, exportDb, contacts } = useDbContext()
+  const { appDB, exportDb, contacts } = useDbContext()
   const [isDepugMenuOpen, setIsDebugMenuOpen] = useState(false)
 
   const { socketState, sendMessage } = useMessagingContext()
@@ -43,11 +43,11 @@ const UserPage = () => {
     console.log('logout success')
   }, [logout, router])
 
-  const testSaveKeyBundle = useCallback(async () => {
-    const keyBundle = await signalStore.createID()
-    await emitEventWithAck('keyBundle:save', keyBundle)
-  }, [signalStore])
-  // arrow up
+  // const testSaveKeyBundle = useCallback(async () => {
+  //   const keyBundle = await signalStore.createID()
+  //   await emitEventWithAck('keyBundle:save', keyBundle)
+  // }, [signalStore])
+  // // arrow up
 
   const containerClassName = classNames({
     [styles.container]: !isChatOpen,
@@ -86,7 +86,7 @@ const UserPage = () => {
             >
               export db
             </a>
-            <button onClick={() => testSaveKeyBundle()}>testLocal</button>
+            {/* <button onClick={() => testSaveKeyBundle()}>testLocal</button> */}
             <p>Status: {socketState}</p>
             <div>
               <input type="text" id="recipientNameInput" />

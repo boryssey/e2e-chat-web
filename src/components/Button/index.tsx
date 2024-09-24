@@ -1,5 +1,6 @@
 import { ButtonHTMLAttributes, DetailedHTMLProps } from 'react'
 import styles from './button.module.scss'
+import classNames from 'classnames'
 
 const Arrow = () => {
   return (
@@ -39,20 +40,18 @@ const Button = ({
   ...props
 }: ButtonProps) => {
   if (empty) {
+    const classes = classNames(styles.noStyle, className)
+
     return (
-      <button
-        className={`${styles.noStyle}${className ? ` ${className}` : ''}`}
-        {...props}
-      >
+      <button className={classes} {...props}>
         {children}
       </button>
     )
   }
+  const classes = classNames(styles[color], className)
+
   return (
-    <button
-      className={`${styles[color]}${className ? ` ${className}` : ''}`}
-      {...props}
-    >
+    <button className={classes} {...props}>
       {children} {withArrow && <Arrow />}
     </button>
   )
