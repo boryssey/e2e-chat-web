@@ -25,7 +25,8 @@ import { SessionRecord } from '@privacyresearch/libsignal-protocol-typescript/li
 */
 
 export function arrayBufferToString(b: ArrayBuffer): string {
-  return uint8ArrayToString(new Uint8Array(b))
+  // return uint8ArrayToString(new Uint8Array(b))
+  return new TextDecoder().decode(new Uint8Array(b))
 }
 
 export function toArrayBuffer(buffer: Buffer) {
