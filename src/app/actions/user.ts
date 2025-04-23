@@ -1,5 +1,6 @@
 'use server'
 import { User } from '@/context/AuthContext'
+import { getResponseError } from '@/utils/helpers'
 import { cookies } from 'next/headers'
 
 export const getUserInfo = async () => {
@@ -20,6 +21,7 @@ export const getUserInfo = async () => {
     const data = (await res.json()) as unknown
     return data as User
   }
-  //   console.error(res.statusText)
+  const errorMessage = getResponseError(await res.json(), res.statusText)
+  console.error('getUserInfo error', errorMessage)
   return null
 }

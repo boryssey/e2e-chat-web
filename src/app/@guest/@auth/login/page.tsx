@@ -30,10 +30,10 @@ export default function LoginPage() {
   const onLogin: SubmitHandler<Inputs> = useCallback(
     async (data, event) => {
       event?.preventDefault()
-      const res = await login(data, false)
+      const res = await login(data, true)
       if (res.success) {
-        router.push('/')
         router.refresh()
+        router.push('/')
       } else {
         setError('password', {
           type: 'server_error',

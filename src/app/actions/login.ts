@@ -40,6 +40,7 @@ export async function login(
     await response.json(),
     response.statusText
   )
+  console.error(errorMessage)
   return {
     success: false,
     errorMessage,
