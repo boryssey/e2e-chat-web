@@ -1,12 +1,13 @@
 'use client'
-import Button from '@/components/Button'
-import Input from '@/components/Input'
 import { useForm, SubmitHandler } from 'react-hook-form'
-import styles from '../auth.module.scss'
 import { usePathname, useRouter } from 'next/navigation'
+import { register as registerAction } from '@/app/actions/register'
+import Input from '@/components/Input'
 import VerticalNavLink from '@/components/VerticalNavigationButton'
 import Link from 'next/link'
+import Button from '@/components/Button'
 import Loading from '@/components/Loading'
+import styles from '../auth.module.scss'
 
 interface Inputs {
   username: string
@@ -14,7 +15,7 @@ interface Inputs {
   'confirm-password': string
 }
 
-export default function LoginPage() {
+export default function RegisterPage() {
   const pathname = usePathname()
   const isOpen = pathname.includes('/register')
   const router = useRouter()
@@ -29,31 +30,11 @@ export default function LoginPage() {
 
   const onRegister: SubmitHandler<Inputs> = async (data, event) => {
     event?.preventDefault()
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/register`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-        credentials: 'include',
-      }
-    )
-    if (!res.ok) {
-      const error = (await res.json()) as unknown
-
-      console.error(error, 'error')
-
+    const res = await registerAction(data, false)
+    if (!res.success) {
       setError('username', {
         type: 'server_error',
-        message:
-          error &&
-          typeof error === 'object' &&
-          'message' in error &&
-          typeof error.message === 'string'
-            ? error.message
-            : res.statusText,
+        message: res.errorMessage,
       })
 
       return

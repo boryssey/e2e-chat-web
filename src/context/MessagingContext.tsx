@@ -70,19 +70,17 @@ export const getRemoteKeyBundle = async (username: string) => {
     ...(data.one_time_keys && {
       preKey: {
         keyId: data.one_time_keys.key_id,
-        publicKey: Uint8Array.from(data.one_time_keys.pub_key.data)
-          .buffer as ArrayBuffer,
+        publicKey: Uint8Array.from(data.one_time_keys.pub_key.data).buffer,
       },
     }),
     signedPreKey: {
       keyId: data.key_bundles.signed_pre_key_id,
       publicKey: Uint8Array.from(data.key_bundles.signed_pre_key_pub_key.data)
-        .buffer as ArrayBuffer,
+        .buffer,
       signature: Uint8Array.from(data.key_bundles.signed_pre_key_signature.data)
-        .buffer as ArrayBuffer,
+        .buffer,
     },
-    identityKey: Uint8Array.from(data.key_bundles.identity_pub_key.data)
-      .buffer as ArrayBuffer,
+    identityKey: Uint8Array.from(data.key_bundles.identity_pub_key.data).buffer,
   }
   return transformedBundle
 }
@@ -180,7 +178,7 @@ const MessagingContextProvider = ({
       contact: Contact
     }) => {
       const encryptedMessage = await sessionCipher.encrypt(
-        stringToArrayBuffer(messageText).buffer
+        stringToArrayBuffer(messageText).buffer as ArrayBuffer
       )
 
       const messageToSend = {

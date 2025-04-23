@@ -84,7 +84,7 @@ export interface ClientToServerEvents {
 }
 
 export const socket: Socket<ServerToClientEvents, ClientToServerEvents> = io(
-  process.env.NEXT_PUBLIC_BACKEND_URL!,
+  process.env.NEXT_PUBLIC_BACKEND_URL,
   {
     transports: ['websocket'],
     withCredentials: true,

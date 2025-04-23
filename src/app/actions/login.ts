@@ -2,14 +2,18 @@
 
 import { revalidatePath, revalidateTag } from 'next/cache'
 import { redirect } from 'next/navigation'
-import { handleServerCookies } from './utils'
-
+import { handleServerCookies } from './serverUtils'
+import { getResponseError } from '@/utils/helpers'
+import { type ServerResponse } from '@/utils/types'
 interface Inputs {
   username: string
   password: string
 }
 
-export async function login(data: Inputs, shouldRedirect?: boolean) {
+export async function login(
+  data: Inputs,
+  shouldRedirect?: boolean
+): Promise<ServerResponse> {
   const response = await fetch(
     `${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/login`,
     {
@@ -21,21 +25,6 @@ export async function login(data: Inputs, shouldRedirect?: boolean) {
       credentials: 'include',
     }
   )
-  if (!response.ok) {
-    const error = (await response.json()) as unknown
-    const errorMessage =
-      error &&
-      typeof error === 'object' &&
-      'message' in error &&
-      typeof error.message === 'string'
-        ? error.message
-        : response.statusText
-
-    return {
-      success: false,
-      errorMessage,
-    }
-  }
   if (response.ok) {
     await handleServerCookies(response.headers.getSetCookie())
     revalidateTag('user')
@@ -47,20 +36,12 @@ export async function login(data: Inputs, shouldRedirect?: boolean) {
       success: true,
     }
   }
-  const error = (await response.json()) as unknown
-  if (
-    error &&
-    typeof error === 'object' &&
-    'message' in error &&
-    typeof error.message === 'string'
-  ) {
-    return {
-      type: 'server_error',
-      message: error.message,
-    }
-  }
+  const errorMessage = getResponseError(
+    await response.json(),
+    response.statusText
+  )
   return {
-    type: 'server_error',
-    message: response.statusText,
+    success: false,
+    errorMessage,
   }
 }

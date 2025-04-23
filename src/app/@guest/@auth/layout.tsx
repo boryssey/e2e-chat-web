@@ -1,22 +1,6 @@
 import { redirect } from 'next/navigation'
 import styles from './auth.module.scss'
-import { cookies } from 'next/headers'
-import { User } from '@/context/AuthContext'
-
-const getUserInfo = async () => {
-  const cookieStore = await cookies()
-  const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/me`, {
-    headers: {
-      Cookie: cookieStore.toString(),
-    },
-    credentials: 'include',
-  })
-  if (res.ok) {
-    const data = (await res.json()) as User
-    return data
-  }
-  return null
-}
+import { getUserInfo } from '@/app/actions/user'
 
 export default async function AuthLayout({
   children,

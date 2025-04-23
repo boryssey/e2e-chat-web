@@ -1,10 +1,11 @@
 'use client'
 
 import { useContext, createContext } from 'react'
-
+import { logout } from '@/app/actions/logout'
+import { type ServerResponse } from '@/utils/types'
 interface IAuthContext {
   user: User
-  logout: () => Promise<Response>
+  logout: () => Promise<ServerResponse>
 }
 
 const AuthContext = createContext<IAuthContext | null>(null)
@@ -22,12 +23,6 @@ export interface User {
   created_at: Date | null
   deleted_at: Date | null
 }
-
-const logout = async () =>
-  fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/logout`, {
-    method: 'GET',
-    credentials: 'include',
-  })
 
 const AuthProvider = ({
   userInfo,

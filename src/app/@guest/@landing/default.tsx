@@ -1,6 +1,6 @@
 import Page from './page'
-const DefaultLanding = ({ ...props }) => {
-  return <Page {...props} />
+const DefaultLanding = () => {
+  return <Page />
 }
 
 export default DefaultLanding

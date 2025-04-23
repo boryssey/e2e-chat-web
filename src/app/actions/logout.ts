@@ -3,12 +3,28 @@
 import { revalidatePath, revalidateTag } from 'next/cache'
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
-import { handleServerCookies } from './utils'
+import { handleServerCookies } from './serverUtils'
+import { getResponseError } from '@/utils/helpers'
+import { type ServerResponse } from '@/utils/types'
 
-export async function logout(shouldRedirect?: boolean) {
+const handleLogout = (shouldRedirect?: boolean): ServerResponse => {
+  revalidateTag('user')
+  revalidatePath('/', 'layout')
+  if (shouldRedirect) {
+    redirect('/')
+  }
+  return {
+    success: true,
+    data: null,
+  }
+}
+
+export async function logout(
+  shouldRedirect?: boolean
+): Promise<ServerResponse> {
   const cookieStore = await cookies()
   if (!cookieStore.has('accessToken')) {
-    return null
+    return handleLogout(shouldRedirect)
   }
   const response = await fetch(
     `${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/logout`,
@@ -23,19 +39,14 @@ export async function logout(shouldRedirect?: boolean) {
   )
   if (response.ok) {
     await handleServerCookies(response.headers.getSetCookie())
-    revalidateTag('user')
-    revalidatePath('/', 'layout')
-    if (shouldRedirect) {
-      redirect('/')
-    }
-    return {
-      success: true,
-    }
+    return handleLogout(shouldRedirect)
   }
-  console.error(
-    'Something went wrong went logging out',
-    response.status,
+  const errorMessage = getResponseError(
+    await response.json(),
     response.statusText
   )
-  throw new Error('Server Error')
+  return {
+    success: false,
+    errorMessage,
+  }
 }
