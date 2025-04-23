@@ -224,7 +224,7 @@ export class SignalProtocolIndexDBStore implements StorageType {
   async saveIdentity(
     encodedAddress: string,
     publicKey: ArrayBuffer,
-    _nonblockingApproval?: boolean | undefined
+    _nonblockingApproval?: boolean
   ) {
     const address = SignalProtocolAddress.fromString(encodedAddress)
     const existing = await this.get('identifierKey:' + address.name)
