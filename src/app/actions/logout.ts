@@ -1,10 +1,11 @@
 'use server'
 
 import { revalidatePath, revalidateTag } from 'next/cache'
-import { cookies, type UnsafeUnwrappedCookies } from 'next/headers'
+import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
+import { handleServerCookies } from './utils'
 
-export async function logout() {
+export async function logout(shouldRedirect?: boolean) {
   const cookieStore = await cookies()
   if (!cookieStore.has('accessToken')) {
     return null
@@ -15,26 +16,21 @@ export async function logout() {
       method: 'GET',
       headers: {
         Cookie: cookieStore.toString(),
-
         'Content-Type': 'application/json',
       },
       credentials: 'include',
     }
   )
   if (response.ok) {
-    const setCookieHeader = response.headers.getSetCookie()
-    if (setCookieHeader.length) {
-      setCookieHeader.map(async (cookie) => {
-        const [cookieName, ...cookieAttributes] = cookie.split('=')
-        const cookieStore = await cookies()
-        cookieStore.set(cookieName, cookieAttributes.join('='), {
-          httpOnly: true,
-        })
-      })
-    }
+    await handleServerCookies(response.headers.getSetCookie())
     revalidateTag('user')
     revalidatePath('/', 'layout')
-    redirect('/')
+    if (shouldRedirect) {
+      redirect('/')
+    }
+    return {
+      success: true,
+    }
   }
   console.error(
     'Something went wrong went logging out',

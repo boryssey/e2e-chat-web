@@ -9,6 +9,7 @@ import VerticalNavLink from '@/components/VerticalNavigationButton'
 import Link from 'next/link'
 import Loading from '@/components/Loading'
 import { useRouter } from 'next/navigation'
+import { login } from '@/app/actions/login'
 
 interface Inputs {
   username: string
@@ -29,42 +30,16 @@ export default function LoginPage() {
   const onLogin: SubmitHandler<Inputs> = useCallback(
     async (data, event) => {
       event?.preventDefault()
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/login`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(data),
-          credentials: 'include',
-        }
-      )
-
-      if (!res.ok) {
-        const error = (await res.json()) as unknown
-
-        console.error(error, 'error')
-        if (
-          error &&
-          typeof error === 'object' &&
-          'message' in error &&
-          typeof error.message === 'string'
-        ) {
-          setError('password', {
-            type: 'server_error',
-            message: error.message,
-          })
-        } else {
-          setError('password', {
-            type: 'server_error',
-            message: res.statusText,
-          })
-        }
-        return
+      const res = await login(data, false)
+      if (res.success) {
+        router.push('/')
+        router.refresh()
+      } else {
+        setError('password', {
+          type: 'server_error',
+          message: res.errorMessage,
+        })
       }
-      router.push('/')
-      router.refresh()
     },
     [setError, router]
   )
