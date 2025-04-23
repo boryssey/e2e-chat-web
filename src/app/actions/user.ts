@@ -8,6 +8,7 @@ export const getUserInfo = async () => {
   if (!cookieStore.has('accessToken')) {
     return null
   }
+  console.log('cookieStore', cookieStore.toString())
   const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/me`, {
     headers: {
       Cookie: cookieStore.toString(),

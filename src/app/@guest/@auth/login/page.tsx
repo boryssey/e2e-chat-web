@@ -30,7 +30,7 @@ export default function LoginPage() {
   const onLogin: SubmitHandler<Inputs> = useCallback(
     async (data, event) => {
       event?.preventDefault()
-      const res = await login(data, true)
+      const res = await login(data, false)
       if (res.success) {
         router.refresh()
         router.push('/')
