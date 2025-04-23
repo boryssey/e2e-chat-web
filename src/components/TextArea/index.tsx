@@ -18,7 +18,6 @@ const TextArea = (props: TextAreaProps) => {
     const resizeTextArea = () => {
       if (ref.current) {
         ref.current.style.height = 'auto'
-        console.log(ref.current.scrollHeight)
         if (ref.current.scrollHeight < 112) {
           ref.current.style.height = `${ref.current.scrollHeight + 2}px`
           if (ref.current.style.overflowY !== 'hidden') {

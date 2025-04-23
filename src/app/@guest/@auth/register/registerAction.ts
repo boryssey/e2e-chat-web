@@ -1,7 +1,7 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { cookies } from 'next/headers'
+import { cookies, type UnsafeUnwrappedCookies } from 'next/headers';
 import { redirect } from 'next/navigation'
 
 interface Inputs {
@@ -27,7 +27,7 @@ export async function register(data: Inputs) {
     if (setCookieHeader.length) {
       setCookieHeader.forEach((cookie) => {
         const [cookieName, ...cookieAttributes] = cookie.split('=')
-        cookies().set(cookieName, cookieAttributes.join('='), {
+        (cookies() as unknown as UnsafeUnwrappedCookies).set(cookieName, cookieAttributes.join('='), {
           httpOnly: true,
         })
       })

@@ -4,7 +4,7 @@ import { cookies } from 'next/headers'
 import { User } from '@/context/AuthContext'
 
 const getUserInfo = async () => {
-  const cookieStore = cookies()
+  const cookieStore = await cookies()
   const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/me`, {
     headers: {
       Cookie: cookieStore.toString(),

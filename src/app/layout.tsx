@@ -1,3 +1,4 @@
+'use server'
 import type { Metadata } from 'next'
 
 import './globals.scss'
@@ -11,14 +12,17 @@ export const metadata: Metadata = {
   description: 'Simple E2EE Chat App',
 }
 
-const getUserInfo = async () => {
-  const cookieStore = cookies()
+export const getUserInfo = async () => {
+  const cookieStore = await cookies()
   if (!cookieStore.has('accessToken')) {
     return null
   }
   const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/me`, {
     headers: {
       Cookie: cookieStore.toString(),
+    },
+    next: {
+      tags: ['user'],
     },
     credentials: 'include',
   })

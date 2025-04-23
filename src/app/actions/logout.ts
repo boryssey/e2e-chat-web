@@ -1,11 +1,11 @@
 'use server'
 
-import { revalidatePath } from 'next/cache'
-import { cookies } from 'next/headers'
+import { revalidatePath, revalidateTag } from 'next/cache'
+import { cookies, type UnsafeUnwrappedCookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 
 export async function logout() {
-  const cookieStore = cookies()
+  const cookieStore = await cookies()
   if (!cookieStore.has('accessToken')) {
     return null
   }
@@ -24,13 +24,15 @@ export async function logout() {
   if (response.ok) {
     const setCookieHeader = response.headers.getSetCookie()
     if (setCookieHeader.length) {
-      setCookieHeader.forEach((cookie) => {
+      setCookieHeader.map(async (cookie) => {
         const [cookieName, ...cookieAttributes] = cookie.split('=')
-        cookies().set(cookieName, cookieAttributes.join('='), {
+        const cookieStore = await cookies()
+        cookieStore.set(cookieName, cookieAttributes.join('='), {
           httpOnly: true,
         })
       })
     }
+    revalidateTag('user')
     revalidatePath('/', 'layout')
     redirect('/')
   }
