@@ -178,7 +178,7 @@ const MessagingContextProvider = ({
       contact: Contact
     }) => {
       const encryptedMessage = await sessionCipher.encrypt(
-        stringToArrayBuffer(messageText).buffer as ArrayBuffer
+        stringToArrayBuffer(messageText).buffer
       )
 
       const messageToSend = {
